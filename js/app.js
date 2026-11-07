@@ -368,7 +368,7 @@ class KouluApuriApp {
     const startBtn = document.getElementById('btn-start-exam-practice');
     if (startBtn) {
       startBtn.addEventListener('click', () => {
-        this.startExerciseSession('sekoitus', 12);
+        this.startExerciseSession('koe', nextExam.tavoiteLaskujaPaivassa || 10, false, nextExam);
       });
     }
   }
@@ -377,9 +377,10 @@ class KouluApuriApp {
   // HARJOITTELUSYLI JA TEHTÄVIEN KULKU
   // ==========================================
 
-  startExerciseSession(topic, count = 10, isDaily = false) {
+  startExerciseSession(topic, count = 10, isDaily = false, examData = null) {
     this.currentSession = {
       topic: topic,
+      examData: examData,
       totalCount: count,
       isDaily: isDaily,
       questions: [],
@@ -391,7 +392,11 @@ class KouluApuriApp {
 
     // Luodaan sessiolle tehtäväpaketti
     for (let i = 0; i < count; i++) {
-      this.currentSession.questions.push(window.mathEngine.generateByTopic(topic));
+      if (examData && examData.aihealueet) {
+        this.currentSession.questions.push(window.mathEngine.generateByTopicList(examData.aihealueet));
+      } else {
+        this.currentSession.questions.push(window.mathEngine.generateByTopic(topic));
+      }
     }
 
     this.showView('harjoitus-view');
@@ -415,7 +420,7 @@ class KouluApuriApp {
 
     progressText.textContent = `Kysymys ${s.currentIndex + 1} / ${s.totalCount}`;
     progressBar.style.width = `${((s.currentIndex) / s.totalCount) * 100}%`;
-    categoryBadge.textContent = q.category;
+    categoryBadge.textContent = s.examData ? `🎯 ${s.examData.nimi}` : q.category;
     questionText.textContent = q.question;
     inputDisplay.value = '';
     hintBox.classList.add('hidden');

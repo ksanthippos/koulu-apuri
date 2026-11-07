@@ -428,6 +428,34 @@ class MathEngine {
     }
   }
 
+  // Generoi tehtävä kokeen aihealueiden perusteella
+  generateByTopicList(topicList) {
+    if (!topicList || !Array.isArray(topicList) || topicList.length === 0) {
+      return this.generateByTopic('sekoitus');
+    }
+
+    const generators = [];
+    const text = topicList.join(' ').toLowerCase();
+
+    if (text.includes('kerto')) generators.push(() => this.generateMultiplication());
+    if (text.includes('jako')) generators.push(() => this.generateDivision());
+    if (text.includes('murto')) generators.push(() => this.generateFraction());
+    if (text.includes('luku') || text.includes('pyöris') || text.includes('jono')) generators.push(() => this.generateNumbersAndRounding());
+    if (text.includes('mitta') || text.includes('piiri') || text.includes('kello') || text.includes('geometria')) generators.push(() => this.generateMeasurement());
+    if (text.includes('sanal')) generators.push(() => this.generateWordProblem());
+
+    // Tarkistetaan myös sopivat vanhempien omat tehtävät
+    if (this.customQuestions.length > 0) {
+      generators.push(() => this.generateByTopic('omat'));
+    }
+
+    if (generators.length === 0) {
+      return this.generateByTopic('sekoitus');
+    }
+
+    return this.pick(generators)();
+  }
+
   // Tarkista vastaus
   checkAnswer(userAns, correctAns) {
     if (typeof userAns === 'undefined' || userAns === null) return false;
