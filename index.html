@@ -189,15 +189,22 @@
          NÄKYMÄ 4: VANHEMPIEN TILA
          ========================================== -->
     <section id="vanhemmat-view" class="view-screen">
-      <div class="section-title">
-        <span>⚙️</span>
-        <span>Vanhempien tila & Koesuunnittelu</span>
+      <div class="parent-header-bar">
+        <div class="section-title" style="margin: 0;">
+          <span>⚙️</span>
+          <span>Vanhempien tila & Koesuunnittelu</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btn-lock-parent-mode">🔒 Lukitse tila</button>
       </div>
 
       <!-- Kokeiden hallinta -->
       <div class="parent-card">
-        <h3 style="margin-bottom: 10px;">📅 Lisää tuleva koe</h3>
+        <div class="parent-card-header">
+          <h3 id="exam-form-title">📅 Lisää tuleva koe</h3>
+          <button type="button" class="btn btn-secondary btn-xs hidden" id="btn-cancel-edit-exam">✕ Peruuta muokkaus</button>
+        </div>
         <form id="form-add-exam">
+          <input type="hidden" id="input-exam-id" value="">
           <div class="form-group">
             <label>Kokeen nimi</label>
             <input type="text" id="input-exam-name" class="form-control" placeholder="esim. Matematiikan jakson 3 koe" required>
@@ -208,12 +215,23 @@
           </div>
           <div class="form-group">
             <label>Koealueen aiheet (pilkulla eroteltuna)</label>
-            <input type="text" id="input-exam-topics" class="form-control" placeholder="esim. Kertotaulut 7-9, Jakojäännös, Piiri">
+            <input type="text" id="input-exam-topics" class="form-control" placeholder="esim. Kertotaulut 6–9, Jakolaskut, Murtoluvut">
+            <div class="topic-chips-label">Pikavalinnat (napauta lisätäksesi aiheita):</div>
+            <div class="topic-chips" id="exam-topic-chips">
+              <button type="button" class="topic-chip" data-topic="Kertotaulut 6–9">⚡ Kertotaulut 6–9</button>
+              <button type="button" class="topic-chip" data-topic="Kertolaskut (kympit)">⚡ Kympeillä kertominen</button>
+              <button type="button" class="topic-chip" data-topic="Jakolaskut & jakojäännös">➗ Jakolaskut & jakojäännös</button>
+              <button type="button" class="topic-chip" data-topic="Murtoluvut">🍰 Murtoluvut</button>
+              <button type="button" class="topic-chip" data-topic="Lukualue 0–100 000 & pyöristys">🔢 Lukualue & pyöristys</button>
+              <button type="button" class="topic-chip" data-topic="Mittaaminen & piiri">📏 Mittaaminen & piiri</button>
+              <button type="button" class="topic-chip" data-topic="Kellonajat">⏰ Kellonajat</button>
+              <button type="button" class="topic-chip" data-topic="Sanalliset monivaihetehtävät">💡 Sanalliset tehtävät</button>
+            </div>
           </div>
-          <button type="submit" class="btn btn-primary btn-sm">Tallenna koe kalenteriin</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-save-exam">Tallenna koe kalenteriin</button>
         </form>
 
-        <h4 style="margin: 20px 0 10px 0;">Merkityt kokeet:</h4>
+        <h4 style="margin: 22px 0 10px 0;">Merkityt kokeet:</h4>
         <div id="parent-exams-list"></div>
       </div>
 
@@ -230,6 +248,30 @@
           Kun lapsi on saanut sovitun palkinnon tosielämässä, voit merkitä sen käytetyksi täältä.
         </p>
         <div id="parent-rewards-admin"></div>
+      </div>
+
+      <!-- PIN-koodin hallinta -->
+      <div class="parent-card">
+        <h3 style="margin-bottom: 6px;">🔐 Vanhemman PIN-koodi</h3>
+        <p class="text-sm text-muted" style="margin-bottom: 14px;">
+          4-numeroinen PIN-koodi suojaa vanhempien asetukset ja tilastot. Oletuskoodi on <strong>1234</strong>. Koodi tallentuu laitteen omaan muistiin (ei julkiseen GitHubiin).
+        </p>
+        <form id="form-change-pin" style="max-width: 320px;">
+          <div class="form-group">
+            <label>Nykyinen PIN-koodi</label>
+            <input type="password" inputmode="numeric" maxlength="4" id="input-current-pin" class="form-control" placeholder="4 numeroa" required>
+          </div>
+          <div class="form-group">
+            <label>Uusi 4-numeroinen PIN</label>
+            <input type="password" inputmode="numeric" maxlength="4" id="input-new-pin" class="form-control" placeholder="4 numeroa" required>
+          </div>
+          <div class="form-group">
+            <label>Vahvista uusi PIN</label>
+            <input type="password" inputmode="numeric" maxlength="4" id="input-confirm-pin" class="form-control" placeholder="4 numeroa" required>
+          </div>
+          <div id="pin-change-status" class="text-sm" style="margin-bottom: 10px; font-weight: 600;"></div>
+          <button type="submit" class="btn btn-primary btn-sm">Tallenna uusi PIN</button>
+        </form>
       </div>
 
       <!-- Tiedon tuonti & vienti (Local-First) -->
@@ -294,6 +336,43 @@
       </div>
 
       <button class="btn btn-primary" id="summary-close-btn" style="width: 100%;">Palaa kotiin</button>
+    </div>
+  </div>
+
+  <!-- Vanhempien PIN-modaali -->
+  <div class="modal-overlay" id="pin-modal">
+    <div class="modal-box pin-modal-box">
+      <div class="pin-header-icon">🔒</div>
+      <h3 class="pin-title">Vanhempien tila</h3>
+      <p class="pin-subtitle">Syötä 4-numeroinen PIN-koodi</p>
+      
+      <!-- 4 PIN-pistettä -->
+      <div class="pin-dots" id="pin-dots">
+        <span class="pin-dot"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-dot"></span>
+      </div>
+
+      <div class="pin-error-msg" id="pin-error-msg"></div>
+
+      <!-- PIN Numpad iPadille ja mobiiliin -->
+      <div class="pin-numpad-grid" id="pin-numpad">
+        <button class="pin-btn" data-pin="1">1</button>
+        <button class="pin-btn" data-pin="2">2</button>
+        <button class="pin-btn" data-pin="3">3</button>
+        <button class="pin-btn" data-pin="4">4</button>
+        <button class="pin-btn" data-pin="5">5</button>
+        <button class="pin-btn" data-pin="6">6</button>
+        <button class="pin-btn" data-pin="7">7</button>
+        <button class="pin-btn" data-pin="8">8</button>
+        <button class="pin-btn" data-pin="9">9</button>
+        <button class="pin-btn action" data-pin="CLEAR">C</button>
+        <button class="pin-btn" data-pin="0">0</button>
+        <button class="pin-btn action" data-pin="DEL">⌫</button>
+      </div>
+
+      <button class="btn btn-secondary btn-sm" id="btn-cancel-pin" style="width: 100%; margin-top: 10px;">Peruuta</button>
     </div>
   </div>
 

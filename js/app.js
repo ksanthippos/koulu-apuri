@@ -8,7 +8,8 @@ class KouluApuriApp {
     this.currentSession = null;
     this.sessionIndex = 0;
     this.sessionCorrect = 0;
-    this.parentPin = '1234';
+    this.isParentUnlocked = false;
+    this.enteredPin = '';
 
     this.init();
   }
@@ -16,6 +17,7 @@ class KouluApuriApp {
   // Oletustila, jos paikallista dataa ei vielä ole
   getDefaultState() {
     return {
+      parentPin: '1234',
       profiili: {
         nimi: 'Oppilas',
         avatar: '🦊',
@@ -31,7 +33,7 @@ class KouluApuriApp {
           id: 'esimerkki-koe-1',
           nimi: 'Matematiikan jakson koe',
           paivamaara: this.getRelativeDateString(10), // 10 päivän päästä
-          aihealueet: ['Kertotaulut 6-9', 'Jakolaskut ja jakojäännös', 'Murtoluvut'],
+          aihealueet: ['Kertotaulut 6–9', 'Jakolaskut & jakojäännös', 'Murtoluvut'],
           tavoiteLaskujaPaivassa: 10
         }
       ],
@@ -68,6 +70,9 @@ class KouluApuriApp {
       const saved = localStorage.getItem('kouluapuri_state_v1');
       if (saved) {
         const parsed = JSON.parse(saved);
+        if (!parsed.parentPin) {
+          parsed.parentPin = '1234';
+        }
         // Tarkistetaan streak päivittyneelle päivälle
         this.checkStreak(parsed);
         return parsed;
@@ -145,7 +150,12 @@ class KouluApuriApp {
       tab.addEventListener('click', () => {
         const view = tab.dataset.view;
         if (view === 'vanhemmat-view') {
-          this.promptParentAccess();
+          if (this.isParentUnlocked) {
+            this.showView('vanhemmat-view');
+            this.renderParentView();
+          } else {
+            this.openPinModal();
+          }
         } else {
           this.showView(view);
         }
@@ -199,6 +209,25 @@ class KouluApuriApp {
         const isEnabled = window.sounds.toggle();
         soundToggle.textContent = isEnabled ? '🔊' : '🔇';
       });
+    }
+
+    // PIN-koodin näppäimistötapahtumat
+    document.querySelectorAll('#pin-numpad .pin-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const val = e.currentTarget.dataset.pin;
+        this.handlePinInput(val);
+      });
+    });
+
+    const cancelPinBtn = document.getElementById('btn-cancel-pin');
+    if (cancelPinBtn) {
+      cancelPinBtn.addEventListener('click', () => this.closePinModal());
+    }
+
+    // Vanhempien tilan lukitseminen
+    const lockParentBtn = document.getElementById('btn-lock-parent-mode');
+    if (lockParentBtn) {
+      lockParentBtn.addEventListener('click', () => this.lockParentMode());
     }
 
     // Vanhempien tilan tapahtumat
@@ -468,6 +497,19 @@ class KouluApuriApp {
   }
 
   handlePhysicalKey(e) {
+    // PIN-modaalin näppäimistötuki
+    const pinModal = document.getElementById('pin-modal');
+    if (pinModal && pinModal.classList.contains('active')) {
+      if (e.key >= '0' && e.key <= '9') {
+        this.handlePinInput(e.key);
+      } else if (e.key === 'Backspace') {
+        this.handlePinInput('DEL');
+      } else if (e.key === 'Escape') {
+        this.closePinModal();
+      }
+      return;
+    }
+
     const harjoitusView = document.getElementById('harjoitus-view');
     if (!harjoitusView || !harjoitusView.classList.contains('active')) return;
 
@@ -698,37 +740,208 @@ class KouluApuriApp {
   }
 
   // ==========================================
-  // VANHEMPIEN TILA
+  // VANHEMPIEN TILA & PIN-HALLINTA
   // ==========================================
 
-  promptParentAccess() {
-    // Helppo suoja lapsilta: laskutoimitus tai koodi
-    const a = Math.floor(Math.random() * 15) + 12;
-    const b = Math.floor(Math.random() * 15) + 12;
-    const expected = a + b;
+  openPinModal() {
+    this.enteredPin = '';
+    this.updatePinDots();
+    const errorMsg = document.getElementById('pin-error-msg');
+    if (errorMsg) errorMsg.textContent = '';
+    const modal = document.getElementById('pin-modal');
+    if (modal) modal.classList.add('active');
+  }
 
-    const answer = prompt(`Vanhempien tilaan pääsy:\nLaske suojaustehtävä: ${a} + ${b} = ?`);
-    if (answer && parseInt(answer, 10) === expected) {
-      this.showView('vanhemmat-view');
-      this.renderParentView();
-    } else if (answer !== null) {
-      alert('Väärä vastaus. Pääsy evätty.');
+  closePinModal() {
+    const modal = document.getElementById('pin-modal');
+    if (modal) modal.classList.remove('active');
+    this.enteredPin = '';
+    this.updatePinDots();
+  }
+
+  handlePinInput(val) {
+    window.sounds.playClick();
+    const errorMsg = document.getElementById('pin-error-msg');
+    if (errorMsg) errorMsg.textContent = '';
+
+    if (val === 'DEL') {
+      this.enteredPin = this.enteredPin.slice(0, -1);
+      this.updatePinDots();
+    } else if (val === 'CLEAR') {
+      this.enteredPin = '';
+      this.updatePinDots();
+    } else if (val >= '0' && val <= '9') {
+      if (this.enteredPin.length < 4) {
+        this.enteredPin += val;
+        this.updatePinDots();
+
+        if (this.enteredPin.length === 4) {
+          setTimeout(() => this.verifyPin(), 120);
+        }
+      }
     }
   }
 
+  updatePinDots() {
+    const dots = document.querySelectorAll('#pin-dots .pin-dot');
+    dots.forEach((dot, index) => {
+      if (index < this.enteredPin.length) {
+        dot.classList.add('filled');
+      } else {
+        dot.classList.remove('filled');
+      }
+    });
+  }
+
+  verifyPin() {
+    const targetPin = this.state.parentPin || '1234';
+    if (this.enteredPin === targetPin) {
+      window.sounds.playSuccess();
+      this.isParentUnlocked = true;
+      this.closePinModal();
+      this.showView('vanhemmat-view');
+      this.renderParentView();
+    } else {
+      window.sounds.playWrong();
+      const dotsContainer = document.getElementById('pin-dots');
+      const errorMsg = document.getElementById('pin-error-msg');
+      if (errorMsg) errorMsg.textContent = 'Väärä PIN-koodi. Yritä uudelleen.';
+      if (dotsContainer) {
+        dotsContainer.classList.add('shake');
+        setTimeout(() => {
+          dotsContainer.classList.remove('shake');
+          this.enteredPin = '';
+          this.updatePinDots();
+        }, 400);
+      } else {
+        this.enteredPin = '';
+        this.updatePinDots();
+      }
+    }
+  }
+
+  lockParentMode() {
+    this.isParentUnlocked = false;
+    window.sounds.playClick();
+    this.showView('koti-view');
+  }
+
   renderParentView() {
+    // Asetetaan koepäivämäärän minimipäiväksi tämä päivä
+    const dateInput = document.getElementById('input-exam-date');
+    if (dateInput && !dateInput.min) {
+      dateInput.min = new Date().toISOString().split('T')[0];
+    }
+
     this.renderParentExamsList();
     this.renderParentAnalytics();
     this.renderParentRewardsList();
   }
 
+  resetExamForm() {
+    const form = document.getElementById('form-add-exam');
+    if (form) form.reset();
+    const idInput = document.getElementById('input-exam-id');
+    if (idInput) idInput.value = '';
+    const titleEl = document.getElementById('exam-form-title');
+    if (titleEl) titleEl.textContent = '📅 Lisää tuleva koe';
+    const saveBtn = document.getElementById('btn-save-exam');
+    if (saveBtn) saveBtn.textContent = 'Tallenna koe kalenteriin';
+    const cancelBtn = document.getElementById('btn-cancel-edit-exam');
+    if (cancelBtn) cancelBtn.classList.add('hidden');
+    document.querySelectorAll('#exam-topic-chips .topic-chip').forEach(c => c.classList.remove('selected'));
+  }
+
+  editExam(id) {
+    const exam = this.state.kokeet.find(k => k.id === id);
+    if (!exam) return;
+
+    const idInput = document.getElementById('input-exam-id');
+    const nameInput = document.getElementById('input-exam-name');
+    const dateInput = document.getElementById('input-exam-date');
+    const topicsInput = document.getElementById('input-exam-topics');
+    const titleEl = document.getElementById('exam-form-title');
+    const saveBtn = document.getElementById('btn-save-exam');
+    const cancelBtn = document.getElementById('btn-cancel-edit-exam');
+
+    if (idInput) idInput.value = exam.id;
+    if (nameInput) nameInput.value = exam.nimi;
+    if (dateInput) dateInput.value = exam.paivamaara;
+    if (topicsInput) topicsInput.value = exam.aihealueet.join(', ');
+    if (titleEl) titleEl.textContent = '✏️ Muokkaa koetta';
+    if (saveBtn) saveBtn.textContent = 'Päivitä kokeen tiedot';
+    if (cancelBtn) cancelBtn.classList.remove('hidden');
+
+    // Korostetaan valitut aiheet
+    const currentTopics = exam.aihealueet.map(t => t.toLowerCase());
+    document.querySelectorAll('#exam-topic-chips .topic-chip').forEach(c => {
+      c.classList.toggle('selected', currentTopics.includes(c.dataset.topic.toLowerCase()));
+    });
+
+    // Vieritys lomakkeeseen
+    const form = document.getElementById('form-add-exam');
+    if (form) {
+      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (nameInput) nameInput.focus();
+    }
+  }
+
   bindParentViewEvents() {
-    // Lisää koe -lomake
+    // Aihe-pikavalintojen klikkaukset
+    const topicsInput = document.getElementById('input-exam-topics');
+    const chips = document.querySelectorAll('#exam-topic-chips .topic-chip');
+
+    const syncChipsWithInput = () => {
+      if (!topicsInput) return;
+      const current = topicsInput.value
+        .split(',')
+        .map(t => t.trim().toLowerCase())
+        .filter(Boolean);
+
+      chips.forEach(chip => {
+        const t = chip.dataset.topic.toLowerCase();
+        chip.classList.toggle('selected', current.includes(t));
+      });
+    };
+
+    if (topicsInput) {
+      topicsInput.addEventListener('input', syncChipsWithInput);
+    }
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        if (!topicsInput) return;
+        const topic = chip.dataset.topic;
+        const list = topicsInput.value
+          .split(',')
+          .map(t => t.trim())
+          .filter(Boolean);
+
+        const foundIndex = list.findIndex(t => t.toLowerCase() === topic.toLowerCase());
+        if (foundIndex >= 0) {
+          list.splice(foundIndex, 1);
+        } else {
+          list.push(topic);
+        }
+
+        topicsInput.value = list.join(', ');
+        syncChipsWithInput();
+      });
+    });
+
+    // Peruuta muokkaus -painike
+    const cancelEditBtn = document.getElementById('btn-cancel-edit-exam');
+    if (cancelEditBtn) {
+      cancelEditBtn.addEventListener('click', () => this.resetExamForm());
+    }
+
+    // Lisää tai muokkaa koe -lomake
     const addExamForm = document.getElementById('form-add-exam');
     if (addExamForm) {
       addExamForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const nimi = document.getElementById('input-exam-name').value;
+        const examId = document.getElementById('input-exam-id').value;
+        const nimi = document.getElementById('input-exam-name').value.trim();
         const date = document.getElementById('input-exam-date').value;
         const topics = document.getElementById('input-exam-topics').value
           .split(',')
@@ -737,19 +950,74 @@ class KouluApuriApp {
 
         if (!nimi || !date) return;
 
-        this.state.kokeet.push({
-          id: 'koe-' + Date.now(),
-          nimi: nimi,
-          paivamaara: date,
-          aihealueet: topics.length > 0 ? topics : ['Yleinen kertaus'],
-          tavoiteLaskujaPaivassa: 10
-        });
+        const examTopics = topics.length > 0 ? topics : ['Yleinen kertaus'];
+
+        if (examId) {
+          // Muokkaus
+          const existingIndex = this.state.kokeet.findIndex(k => k.id === examId);
+          if (existingIndex >= 0) {
+            this.state.kokeet[existingIndex].nimi = nimi;
+            this.state.kokeet[existingIndex].paivamaara = date;
+            this.state.kokeet[existingIndex].aihealueet = examTopics;
+          }
+        } else {
+          // Uusi koe
+          this.state.kokeet.push({
+            id: 'koe-' + Date.now(),
+            nimi: nimi,
+            paivamaara: date,
+            aihealueet: examTopics,
+            tavoiteLaskujaPaivassa: 10
+          });
+        }
 
         this.saveState();
-        addExamForm.reset();
+        this.resetExamForm();
         this.renderParentExamsList();
         this.renderDashboard();
-        alert('Koe lisätty onnistuneesti!');
+        window.sounds.playSuccess();
+      });
+    }
+
+    // PIN-koodin vaihto -lomake
+    const changePinForm = document.getElementById('form-change-pin');
+    if (changePinForm) {
+      changePinForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const currPin = document.getElementById('input-current-pin').value.trim();
+        const newPin = document.getElementById('input-new-pin').value.trim();
+        const confPin = document.getElementById('input-confirm-pin').value.trim();
+        const status = document.getElementById('pin-change-status');
+
+        const activePin = this.state.parentPin || '1234';
+
+        if (currPin !== activePin) {
+          status.style.color = 'var(--danger)';
+          status.textContent = '❌ Nykyinen PIN-koodi on väärin!';
+          return;
+        }
+
+        if (!/^\d{4}$/.test(newPin)) {
+          status.style.color = 'var(--danger)';
+          status.textContent = '❌ Uuden PIN-koodin tulee olla tarkalleen 4 numeroa!';
+          return;
+        }
+
+        if (newPin !== confPin) {
+          status.style.color = 'var(--danger)';
+          status.textContent = '❌ Uudet PIN-koodit eivät täsmää!';
+          return;
+        }
+
+        this.state.parentPin = newPin;
+        this.saveState();
+        window.sounds.playSuccess();
+        status.style.color = 'var(--success)';
+        status.textContent = '✅ PIN-koodi vaihdettu onnistuneesti!';
+        changePinForm.reset();
+        setTimeout(() => {
+          if (status) status.textContent = '';
+        }, 3500);
       });
     }
 
@@ -818,27 +1086,67 @@ class KouluApuriApp {
     if (!container) return;
 
     if (this.state.kokeet.length === 0) {
-      container.innerHTML = '<p class="text-muted">Ei lisättyjä kokeita.</p>';
+      container.innerHTML = '<p class="text-muted">Ei lisättyjä kokeita. Lisää ensimmäinen koe yllä olevalla lomakkeella!</p>';
       return;
     }
 
-    container.innerHTML = this.state.kokeet.map(k => `
-      <div class="exam-list-item">
-        <div>
-          <strong>${k.nimi}</strong> (${new Date(k.paivamaara).toLocaleDateString('fi-FI')})
-          <div class="text-sm text-muted">Aiheet: ${k.aihealueet.join(', ')}</div>
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Lajitellaan kokeet päivämäärän mukaan
+    const sorted = [...this.state.kokeet].sort((a, b) => new Date(a.paivamaara) - new Date(b.paivamaara));
+
+    container.innerHTML = sorted.map(k => {
+      const examDate = new Date(k.paivamaara);
+      examDate.setHours(0, 0, 0, 0);
+      const diffDays = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
+
+      let badgeHtml = '';
+      if (diffDays < 0) {
+        badgeHtml = `<span class="status-badge" style="background: #E2E8F0; color: #64748B; font-size: 11px;">Menneisyydessä</span>`;
+      } else if (diffDays === 0) {
+        badgeHtml = `<span class="status-badge bg-green" style="font-size: 11px;">TÄNÄÄN!</span>`;
+      } else if (diffDays <= 2) {
+        badgeHtml = `<span class="status-badge bg-red" style="font-size: 11px;">${diffDays} pv aikaa</span>`;
+      } else {
+        badgeHtml = `<span class="status-badge bg-blue" style="font-size: 11px;">${diffDays} pv aikaa</span>`;
+      }
+
+      return `
+        <div class="exam-list-item">
+          <div class="exam-item-details">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+              <strong>${k.nimi}</strong>
+              ${badgeHtml}
+            </div>
+            <div class="text-sm text-muted">
+              📅 ${new Date(k.paivamaara).toLocaleDateString('fi-FI')} • Aiheet: ${k.aihealueet.join(', ')}
+            </div>
+          </div>
+          <div class="exam-item-actions">
+            <button class="btn btn-secondary btn-xs btn-edit-exam" data-id="${k.id}">✏️ Muokkaa</button>
+            <button class="btn btn-danger btn-xs btn-delete-exam" data-id="${k.id}">🗑️ Poista</button>
+          </div>
         </div>
-        <button class="btn btn-danger btn-xs btn-delete-exam" data-id="${k.id}">Poista</button>
-      </div>
-    `).join('');
+      `;
+    }).join('');
+
+    container.querySelectorAll('.btn-edit-exam').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.id;
+        this.editExam(id);
+      });
+    });
 
     container.querySelectorAll('.btn-delete-exam').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const id = e.currentTarget.dataset.id;
-        this.state.kokeet = this.state.kokeet.filter(k => k.id !== id);
-        this.saveState();
-        this.renderParentExamsList();
-        this.renderDashboard();
+        if (confirm('Haluatko varmasti poistaa tämän kokeen?')) {
+          this.state.kokeet = this.state.kokeet.filter(k => k.id !== id);
+          this.saveState();
+          this.renderParentExamsList();
+          this.renderDashboard();
+        }
       });
     });
   }
