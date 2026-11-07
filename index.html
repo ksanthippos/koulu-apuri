@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Koulu-apuri: 4. luokan matikka</title>
+
+  <!-- PWA & iOS asetukset -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="KouluApuri">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <meta name="theme-color" content="#4F46E5">
+
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+  <!-- Yläpalkki -->
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-icon">🦉</span>
+      <h1>Koulu-apuri</h1>
+    </div>
+    <div class="header-status">
+      <div class="status-badge" id="user-streak">🔥 1 pv putki</div>
+      <div class="status-badge coins" id="user-coins">⭐ 0</div>
+      <button class="btn-icon" id="btn-toggle-sound" title="Äänet päälle/pois">🔊</button>
+    </div>
+  </header>
+
+  <!-- Pääsisältö -->
+  <main class="app-main">
+
+    <!-- ==========================================
+         NÄKYMÄ 1: KOTI (DASHBOARD)
+         ========================================== -->
+    <section id="koti-view" class="view-screen active">
+      <!-- Profiilikortti -->
+      <div class="profile-card">
+        <div class="profile-avatar" id="user-avatar">🦊</div>
+        <div class="profile-details">
+          <h2 id="user-name">Oppilas</h2>
+          <div class="profile-level-badge" id="user-level">Taso 1 • Laskijanoorukki 🌱</div>
+          <div class="xp-progress-bar-container">
+            <div class="xp-progress-bar" id="user-xp-bar"></div>
+          </div>
+          <div class="xp-text" id="user-xp-text">0 / 100 XP</div>
+        </div>
+      </div>
+
+      <!-- Päivän treeni -nosto -->
+      <div class="daily-card">
+        <div class="daily-content">
+          <h3>⚡ Päivän treeni</h3>
+          <p id="daily-workout-status">Tee päivän 10 laskun sekoitus ja pidä putki yllä!</p>
+        </div>
+        <button class="btn btn-primary" id="btn-daily-workout">Aloita treeni</button>
+      </div>
+
+      <!-- Koe-tutka ja kertausaikataulu -->
+      <div class="section-title">
+        <span>📅</span>
+        <span>Koe-tutka & Kertausaikataulu</span>
+      </div>
+      <div id="exam-radar-container">
+        <!-- Generoidaan JS:llä -->
+      </div>
+
+      <!-- Aihealueet -->
+      <div class="section-title" style="margin-top: 15px;">
+        <span>🎯</span>
+        <span>Harjoittele aihealueita</span>
+      </div>
+      <div class="topics-grid">
+        <button class="topic-btn" data-start-topic="kertolaskut">
+          <span class="topic-icon">⚡</span>
+          <span class="topic-title">Kertolaskut</span>
+          <span class="topic-desc">Taulut 1–10 & kympit</span>
+        </button>
+        <button class="topic-btn" data-start-topic="jakolaskut">
+          <span class="topic-icon">➗</span>
+          <span class="topic-title">Jakolaskut</span>
+          <span class="topic-desc">Jakoviiva & jakojäännös</span>
+        </button>
+        <button class="topic-btn" data-start-topic="murtoluvut">
+          <span class="topic-icon">🍰</span>
+          <span class="topic-title">Murtoluvut</span>
+          <span class="topic-desc">Osa luvusta & vertailu</span>
+        </button>
+        <button class="topic-btn" data-start-topic="lukualue">
+          <span class="topic-icon">🔢</span>
+          <span class="topic-title">Lukualue 0–100k</span>
+          <span class="topic-desc">Pyöristys & lukujonot</span>
+        </button>
+        <button class="topic-btn" data-start-topic="mittaaminen">
+          <span class="topic-icon">📏</span>
+          <span class="topic-title">Mittaaminen</span>
+          <span class="topic-desc">Piiri, yksiköt & kello</span>
+        </button>
+        <button class="topic-btn" data-start-topic="sanalliset">
+          <span class="topic-icon">💡</span>
+          <span class="topic-title">Sanalliset</span>
+          <span class="topic-desc">Arjen matikkapähkinät</span>
+        </button>
+        <button class="topic-btn" data-start-topic="sekoitus">
+          <span class="topic-icon">🎲</span>
+          <span class="topic-title">Supersekoitus</span>
+          <span class="topic-desc">Kaikkia aiheita sekaisin</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         NÄKYMÄ 2: HARJOITUS (EXERCISE PLAYER)
+         ========================================== -->
+    <section id="harjoitus-view" class="view-screen">
+      <div class="exercise-container">
+        <div class="exercise-top-bar">
+          <span class="status-badge" id="exercise-category">Kertolaskut</span>
+          <span id="exercise-progress-text" class="text-sm text-muted">Kysymys 1 / 10</span>
+          <button class="btn btn-secondary btn-sm" id="btn-exit-session">Lopeta</button>
+        </div>
+
+        <div class="exercise-progress">
+          <div class="exercise-progress-fill" id="exercise-progress-bar"></div>
+        </div>
+
+        <div class="question-card">
+          <div class="question-visual hidden" id="exercise-visual"></div>
+          <div class="question-text" id="exercise-question-text">7 × 8 = ?</div>
+          <div class="feedback-hint hidden" id="exercise-hint-box"></div>
+        </div>
+
+        <div class="answer-box">
+          <input type="text" id="exercise-answer-display" class="answer-input" placeholder="?" readonly>
+        </div>
+
+        <!-- Monivalintavaihtoehdot (kun soveltuu) -->
+        <div class="choice-grid hidden" id="exercise-choice-container"></div>
+
+        <!-- iPad Numpad (näppäimistö) -->
+        <div class="numpad-grid" id="exercise-numpad">
+          <button class="numpad-btn" data-val="1">1</button>
+          <button class="numpad-btn" data-val="2">2</button>
+          <button class="numpad-btn" data-val="3">3</button>
+          <button class="numpad-btn" data-val="4">4</button>
+          <button class="numpad-btn" data-val="5">5</button>
+          <button class="numpad-btn" data-val="6">6</button>
+          <button class="numpad-btn" data-val="7">7</button>
+          <button class="numpad-btn" data-val="8">8</button>
+          <button class="numpad-btn" data-val="9">9</button>
+          <button class="numpad-btn action-btn" data-val="CLEAR">C</button>
+          <button class="numpad-btn" data-val="0">0</button>
+          <button class="numpad-btn action-btn" data-val="DEL">⌫</button>
+        </div>
+
+        <button class="btn btn-primary btn-submit-answer" id="btn-submit-answer">Vastaa ✓</button>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         NÄKYMÄ 3: PALKINNOT & SAAVUTUKSET
+         ========================================== -->
+    <section id="palkinnot-view" class="view-screen">
+      <div class="section-title">
+        <span>🎁</span>
+        <span>Lunasta ansaittuja palkintoja</span>
+      </div>
+      <p class="text-sm text-muted" style="margin-bottom: 14px;">
+        Kerää tähtiä laskemalla oikein ja lunasta mahtavia tosielämän palkintoja!
+      </p>
+      <div class="rewards-list" id="rewards-list-container">
+        <!-- Generoidaan JS:llä -->
+      </div>
+
+      <div class="section-title" style="margin-top: 25px;">
+        <span>🏆</span>
+        <span>Mitaliseinä & Saavutukset</span>
+      </div>
+      <div class="badges-grid" id="badges-container">
+        <!-- Generoidaan JS:llä -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         NÄKYMÄ 4: VANHEMPIEN TILA
+         ========================================== -->
+    <section id="vanhemmat-view" class="view-screen">
+      <div class="section-title">
+        <span>⚙️</span>
+        <span>Vanhempien tila & Koesuunnittelu</span>
+      </div>
+
+      <!-- Kokeiden hallinta -->
+      <div class="parent-card">
+        <h3 style="margin-bottom: 10px;">📅 Lisää tuleva koe</h3>
+        <form id="form-add-exam">
+          <div class="form-group">
+            <label>Kokeen nimi</label>
+            <input type="text" id="input-exam-name" class="form-control" placeholder="esim. Matematiikan jakson 3 koe" required>
+          </div>
+          <div class="form-group">
+            <label>Koepäivämäärä</label>
+            <input type="date" id="input-exam-date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Koealueen aiheet (pilkulla eroteltuna)</label>
+            <input type="text" id="input-exam-topics" class="form-control" placeholder="esim. Kertotaulut 7-9, Jakojäännös, Piiri">
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">Tallenna koe kalenteriin</button>
+        </form>
+
+        <h4 style="margin: 20px 0 10px 0;">Merkityt kokeet:</h4>
+        <div id="parent-exams-list"></div>
+      </div>
+
+      <!-- Suoritustilastot -->
+      <div class="parent-card">
+        <h3 style="margin-bottom: 10px;">📊 Lapsen oppimistilastot</h3>
+        <div id="parent-analytics-container"></div>
+      </div>
+
+      <!-- Palkintojen hallinta -->
+      <div class="parent-card">
+        <h3 style="margin-bottom: 10px;">🎁 Palkintojen kuittaus</h3>
+        <p class="text-sm text-muted" style="margin-bottom: 10px;">
+          Kun lapsi on saanut sovitun palkinnon tosielämässä, voit merkitä sen käytetyksi täältä.
+        </p>
+        <div id="parent-rewards-admin"></div>
+      </div>
+
+      <!-- Tiedon tuonti & vienti (Local-First) -->
+      <div class="parent-card">
+        <h3 style="margin-bottom: 8px;">🔒 Yksityisyys & Materiaalien tuonti</h3>
+        <p class="text-sm text-muted" style="margin-bottom: 12px;">
+          Kaikki materiaalit ja vastaukset säilytetään suoraan iPadin muistissa (ei julkisessa GitHubissa). Voit tuoda kustomoituja kokeita ja omia kysymyksiä JSON-tiedostosta.
+        </p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
+            📥 Tuo JSON-tiedosto
+            <input type="file" id="input-import-json" accept=".json" style="display: none;">
+          </label>
+          <button class="btn btn-secondary btn-sm" id="btn-export-json">📤 Varmuuskopioi data (Vienti)</button>
+          <button class="btn btn-danger btn-sm" id="btn-reset-data">⚠️ Nollaa suoritustiedot</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Alapalkki (Navigointi) -->
+  <nav class="bottom-nav">
+    <button class="nav-tab active" data-view="koti-view">
+      <span class="nav-icon">🏠</span>
+      <span>Koti</span>
+    </button>
+    <button class="nav-tab" data-view="palkinnot-view">
+      <span class="nav-icon">⭐</span>
+      <span>Palkinnot</span>
+    </button>
+    <button class="nav-tab" data-view="vanhemmat-view">
+      <span class="nav-icon">👨‍👩‍👧</span>
+      <span>Vanhemmille</span>
+    </button>
+  </nav>
+
+  <!-- Palautemodaali (Oikein / Väärin välitön palaute) -->
+  <div class="modal-overlay" id="feedback-modal">
+    <div class="modal-box">
+      <div id="feedback-content"></div>
+      <button class="btn btn-primary" id="feedback-next-btn" style="width: 100%; margin-top: 14px;">Jatka ➔</button>
+    </div>
+  </div>
+
+  <!-- Yhteenvetomodaali (Treenin päättyminen) -->
+  <div class="modal-overlay" id="summary-modal">
+    <div class="modal-box">
+      <div class="feedback-icon">🏆</div>
+      <h2 style="margin-bottom: 6px;">Hienoa työtä!</h2>
+      <p id="summary-score" style="font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 14px;">10 / 10 oikein!</p>
+      
+      <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px;">
+        <div class="stat-box" style="padding: 10px 18px;">
+          <div class="stat-num" id="summary-xp">+100 XP</div>
+          <div class="stat-label">Kokemuspisteet</div>
+        </div>
+        <div class="stat-box" style="padding: 10px 18px;">
+          <div class="stat-num" id="summary-stars">+5 ⭐</div>
+          <div class="stat-label">Tähdet</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="summary-close-btn" style="width: 100%;">Palaa kotiin</button>
+    </div>
+  </div>
+
+  <!-- Skriptit -->
+  <script src="./js/audio.js"></script>
+  <script src="./js/confetti.js"></script>
+  <script src="./js/mathEngine.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+{
+  "versio": "1.0",
+  "selite": "Tämä on esimerkkipohja koemateriaalien ja kokeiden tuontia varten. Voit muokata tätä ja tuoda tiedoston sovelluksen Vanhempien tilassa.",
+  "kokeet": [
+    {
+      "id": "koe-matikka-jakso-2",
+      "nimi": "Matematiikan jakson 2 koe",
+      "paivamaara": "2026-11-20",
+      "aine": "Matematiikka",
+      "aihealueet": [
+        "Kertotaulut 6-9",
+        "Jakolaskut ja jakojäännös",
+        "Murtoluvut (vertailu ja osan laskeminen)"
+      ],
+      "tavoiteLaskujaPaivassa": 10
+    }
+  ],
+  "omatTehtavat": [
+    {
+      "id": "teht-1",
+      "aihe": "Sanallinen",
+      "kysymys": "Viljami ostaa 3 vihkoa, joista jokainen maksaa 4 euroa, ja kynän, joka maksaa 3 euroa. Paljonko ostokset maksavat yhteensä?",
+      "oikeaVastaus": "15",
+      "yksikko": "€",
+      "vihje": "Laske ensin vihkojen hinta: 3 × 4 €, ja lisää sitten kynän hinta."
+    },
+    {
+      "id": "teht-2",
+      "aihe": "Murtoluvut",
+      "kysymys": "Luokalla on 24 oppilasta. Heistä 1/4 harrastaa jalkapalloa. Kuinka monta oppilasta harrastaa jalkapalloa?",
+      "oikeaVastaus": "6",
+      "yksikko": "oppilasta",
+      "vihje": "Jaa luokan oppilasmäärä 24 neljällä (24 : 4)."
+    },
+    {
+      "id": "teht-3",
+      "aihe": "Mittaaminen",
+      "kysymys": "Suorakulmion muotoisen pihan pituus on 8 metriä ja leveys 5 metriä. Mikä on pihan piiri?",
+      "oikeaVastaus": "26",
+      "yksikko": "m",
+      "vihje": "Piiri on kaikkien sivujen summa: 8 m + 5 m + 8 m + 5 m."
+    }
+  ],
+  "palkinnot": [
+    {
+      "id": "palkinto-1",
+      "nimi": "Valitse perjantain leffaherkku 🍿",
+      "hintaXP": 300,
+      "kuvaus": "Vanhempi ostaa tai tekee valitsemasi herkun leffailtaan!"
+    },
+    {
+      "id": "palkinto-2",
+      "nimi": "30 min vapaata peliaikaa 🎮",
+      "hintaXP": 600,
+      "kuvaus": "Puoli tuntia ylimääräistä peliaikaa viikonloppuna."
+    },
+    {
+      "id": "palkinto-3",
+      "nimi": "Toiveruoka päivälliselle 🍕",
+      "hintaXP": 1000,
+      "kuvaus": "Päätät mitä syödään viikonloppuna!"
+    }
+  ]
+}

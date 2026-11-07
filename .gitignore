@@ -1,0 +1,14 @@
+# Mac OS
+.DS_Store
+
+# Yksityiset koemateriaalit, kysymyspankit ja vastaukset
+# (Nämä säilytetään vain omalla koneella, eivätkä päädy julkiseen GitHub-repoon)
+materiaali/
+private/
+*.private.json
+koemateriaalit/
+vastaukset/
+
+# Testit ja väliaikaistiedostot
+*.tmp
+*.log

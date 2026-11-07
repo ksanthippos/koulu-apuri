@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+  </defs>
+  <!-- Background rounded squircle -->
+  <rect width="512" height="512" rx="115" fill="url(#bgGrad)"/>
+  
+  <!-- Outer subtle glow circle -->
+  <circle cx="256" cy="256" r="190" fill="#ffffff" fill-opacity="0.08"/>
+  
+  <!-- Math symbols in background -->
+  <text x="90" y="140" font-family="system-ui, sans-serif" font-size="70" font-weight="900" fill="#ffffff" fill-opacity="0.25">＋</text>
+  <text x="370" y="140" font-family="system-ui, sans-serif" font-size="70" font-weight="900" fill="#ffffff" fill-opacity="0.25">×</text>
+  <text x="90" y="420" font-family="system-ui, sans-serif" font-size="70" font-weight="900" fill="#ffffff" fill-opacity="0.25">÷</text>
+  <text x="370" y="420" font-family="system-ui, sans-serif" font-size="70" font-weight="900" fill="#ffffff" fill-opacity="0.25">½</text>
+  
+  <!-- Center Star / Shield Badge -->
+  <polygon points="256,120 295,200 385,213 320,276 335,365 256,323 177,365 192,276 127,213 217,200" fill="url(#starGrad)" filter="drop-shadow(0 10px 15px rgba(0,0,0,0.3))"/>
+  
+  <!-- Mini Owl / Mascot Eyes in the Star or Pencil / Compass -->
+  <circle cx="230" cy="235" r="10" fill="#1F2937"/>
+  <circle cx="282" cy="235" r="10" fill="#1F2937"/>
+  <circle cx="233" cy="232" r="3" fill="#ffffff"/>
+  <circle cx="285" cy="232" r="3" fill="#ffffff"/>
+  <path d="M 240 260 Q 256 272 272 260" stroke="#1F2937" stroke-width="4" stroke-linecap="round" fill="none"/>
+  
+  <!-- App text / ribbon -->
+  <rect x="110" y="380" width="292" height="60" rx="30" fill="#ffffff" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.2))"/>
+  <text x="256" y="422" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="800" fill="#4F46E5" text-anchor="middle" letter-spacing="1">KOULU-APURI</text>
+</svg>
