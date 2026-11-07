@@ -380,6 +380,127 @@ class MathEngine {
     };
   }
 
+  // 7. Yhdistetyt laskutoimitukset & Laskujärjestys (Sulut, kerto- ja jakolaskut ennen yhteen- ja vähennyslaskuja)
+  generateOrderOfOperations() {
+    const type = this.pick(['mult_second', 'div_second', 'brackets_add', 'brackets_sub', 'two_products']);
+
+    let question, answer, trap, hint;
+
+    if (type === 'mult_second') {
+      // a + b * c  tai  a - b * c
+      const isSub = Math.random() < 0.5;
+      const b = this.randInt(2, 8);
+      const c = this.randInt(2, 9);
+      const prod = b * c;
+
+      if (isSub) {
+        const a = prod + this.randInt(3, 20);
+        answer = a - prod;
+        trap = Math.max(0, (a - b) * c);
+        question = `${a} - ${b} × ${c} = ?`;
+        hint = `Laskujärjestys: Kertolasku lasketaan ENNEN vähennyslaskua! Laske ensin ${b} × ${c} = ${prod}, ja sitten ${a} - ${prod} = ${answer}.`;
+      } else {
+        const a = this.randInt(3, 25);
+        answer = a + prod;
+        trap = (a + b) * c;
+        question = `${a} + ${b} × ${c} = ?`;
+        hint = `Laskujärjestys: Kertolasku lasketaan ENNEN yhteenlaskua! Laske ensin ${b} × ${c} = ${prod}, ja sitten ${a} + ${prod} = ${answer}.`;
+      }
+    } else if (type === 'div_second') {
+      // a + b : c  tai  a - b : c
+      const isSub = Math.random() < 0.5;
+      const c = this.randInt(2, 6);
+      const quot = this.randInt(2, 8);
+      const b = c * quot;
+
+      if (isSub) {
+        const a = quot + this.randInt(3, 25);
+        answer = a - quot;
+        trap = Math.max(0, Math.floor((a - b) / c));
+        question = `${a} - ${b} : ${c} = ?`;
+        hint = `Laskujärjestys: Jakolasku lasketaan ENNEN vähennyslaskua! Laske ensin ${b} : ${c} = ${quot}, ja sitten ${a} - ${quot} = ${answer}.`;
+      } else {
+        const a = this.randInt(2, 25);
+        answer = a + quot;
+        trap = Math.floor((a + b) / c);
+        question = `${a} + ${b} : ${c} = ?`;
+        hint = `Laskujärjestys: Jakolasku lasketaan ENNEN yhteenlaskua! Laske ensin ${b} : ${c} = ${quot}, ja sitten ${a} + ${quot} = ${answer}.`;
+      }
+    } else if (type === 'brackets_add') {
+      // (a + b) * c  tai  c * (a + b)
+      const a = this.randInt(2, 6);
+      const b = this.randInt(2, 6);
+      const c = this.randInt(2, 7);
+      const sum = a + b;
+      answer = sum * c;
+      trap = a + (b * c); // Virhe: lasketaan ilman sulkuja
+
+      const isPrefix = Math.random() < 0.5;
+      if (isPrefix) {
+        question = `(${a} + ${b}) × ${c} = ?`;
+      } else {
+        question = `${c} × (${a} + ${b}) = ?`;
+      }
+      hint = `Laskujärjestys: Sulkulauseke lasketaan AINA ensin! Laske ensin sulut (${a} + ${b}) = ${sum}, ja kerro sitten: ${sum} × ${c} = ${answer}.`;
+    } else if (type === 'brackets_sub') {
+      // a * (b - c)  tai  a - (b + c)
+      const mode = Math.random() < 0.5 ? 'mult' : 'sub';
+
+      if (mode === 'mult') {
+        const a = this.randInt(2, 8);
+        const c = this.randInt(2, 5);
+        const b = c + this.randInt(2, 6);
+        const diff = b - c;
+        answer = a * diff;
+        trap = (a * b) - c;
+        question = `${a} × (${b} - ${c}) = ?`;
+        hint = `Laskujärjestys: Sulkulauseke lasketaan ensin! Laske ensin sulut (${b} - ${c}) = ${diff}, ja kerro sitten: ${a} × ${diff} = ${answer}.`;
+      } else {
+        const b = this.randInt(4, 12);
+        const c = this.randInt(3, 10);
+        const sum = b + c;
+        const a = sum + this.randInt(5, 30);
+        answer = a - sum;
+        trap = a - b + c; // Virhe: unohdetaan miinusmerkki sulun edessä
+        question = `${a} - (${b} + ${c}) = ?`;
+        hint = `Laskujärjestys: Sulkulauseke lasketaan ensin! Laske sulut (${b} + ${c}) = ${sum}, ja vähennä sitten luvusta ${a}: ${a} - ${sum} = ${answer}.`;
+      }
+    } else {
+      // a * b + c * d
+      const a = this.randInt(2, 6);
+      const b = this.randInt(2, 6);
+      const c = this.randInt(2, 6);
+      const d = this.randInt(2, 5);
+      const prod1 = a * b;
+      const prod2 = c * d;
+      answer = prod1 + prod2;
+      trap = (prod1 + c) * d;
+      question = `${a} × ${b} + ${c} × ${d} = ?`;
+      hint = `Laskujärjestys: Kertolaskut lasketaan ensin! Laske ${a} × ${b} = ${prod1} ja ${c} × ${d} = ${prod2}, ja laske ne yhteen: ${prod1} + ${prod2} = ${answer}.`;
+    }
+
+    // Luodaan fiksut vaihtoehdot, joissa on mukana tyypillinen virhevastaus
+    const optionsSet = new Set([answer]);
+    if (trap !== answer && trap > 0) {
+      optionsSet.add(trap);
+    }
+    while (optionsSet.size < 4) {
+      const offset = this.pick([-4, -3, -2, -1, 1, 2, 3, 4, 5, 10]);
+      const cand = answer + offset;
+      if (cand >= 0) optionsSet.add(cand);
+    }
+
+    return {
+      topic: 'laskujarjestys',
+      category: 'Laskujärjestys',
+      question: question,
+      answer: String(answer),
+      options: this.shuffle(Array.from(optionsSet).map(String)),
+      hint: hint,
+      type: 'calc'
+    };
+  }
+
   // Generoi tehtävä aiheen mukaan
   generateByTopic(topicId) {
     // Jos kyseessä on vanhempien omat tehtävät
@@ -409,6 +530,8 @@ class MathEngine {
         return this.generateMeasurement();
       case 'sanalliset':
         return this.generateWordProblem();
+      case 'laskujarjestys':
+        return this.generateOrderOfOperations();
       case 'sekoitus':
       default: {
         const generators = [
@@ -417,7 +540,8 @@ class MathEngine {
           () => this.generateFraction(),
           () => this.generateNumbersAndRounding(),
           () => this.generateMeasurement(),
-          () => this.generateWordProblem()
+          () => this.generateWordProblem(),
+          () => this.generateOrderOfOperations()
         ];
         // Jos vanhempien tehtäviä on saatavilla, sisällytetään nekin sekoitukseen
         if (this.customQuestions.length > 0) {
@@ -443,6 +567,9 @@ class MathEngine {
     if (text.includes('luku') || text.includes('pyöris') || text.includes('jono')) generators.push(() => this.generateNumbersAndRounding());
     if (text.includes('mitta') || text.includes('piiri') || text.includes('kello') || text.includes('geometria')) generators.push(() => this.generateMeasurement());
     if (text.includes('sanal')) generators.push(() => this.generateWordProblem());
+    if (text.includes('järjestys') || text.includes('jarjestys') || text.includes('sulut') || text.includes('yhdistet')) {
+      generators.push(() => this.generateOrderOfOperations());
+    }
 
     // Tarkistetaan myös sopivat vanhempien omat tehtävät
     if (this.customQuestions.length > 0) {
