@@ -10,6 +10,8 @@ class KouluApuriApp {
     this.sessionCorrect = 0;
     this.isParentUnlocked = false;
     this.enteredPin = '';
+    this.questionStartTime = null;
+    this.timerInterval = null;
 
     this.init();
   }
@@ -18,6 +20,18 @@ class KouluApuriApp {
   getDefaultState() {
     return {
       parentPin: '1234',
+      asetukset: {
+        timer: false
+      },
+      aihetasot: {
+        kertolaskut: 1,
+        jakolaskut: 1,
+        murtoluvut: 1,
+        lukualue: 1,
+        mittaaminen: 1,
+        sanalliset: 1,
+        laskujarjestys: 1
+      },
       profiili: {
         nimi: 'Oppilas',
         avatar: '🦊',
@@ -39,9 +53,9 @@ class KouluApuriApp {
       ],
       omatTehtavat: [],
       palkinnot: [
-        { id: 'p1', nimi: 'Valitse leffaherkku 🍿', hinta: 250, lunastettu: false },
-        { id: 'p2', nimi: '30 min vapaata peliaikaa 🎮', hinta: 500, lunastettu: false },
-        { id: 'p3', nimi: 'Toiveruoka viikonloppuna 🍕', hinta: 800, lunastettu: false }
+        { id: 'p1', nimi: 'Valitse leffaherkku 🍿', hinta: 30, lunastettu: false },
+        { id: 'p2', nimi: '30 min vapaata peliaikaa 🎮', hinta: 50, lunastettu: false },
+        { id: 'p3', nimi: 'Toiveruoka viikonloppuna 🍕', hinta: 80, lunastettu: false }
       ],
       saavutukset: {
         ensimmainenLasku: false,
@@ -72,6 +86,22 @@ class KouluApuriApp {
         const parsed = JSON.parse(saved);
         if (!parsed.parentPin) {
           parsed.parentPin = '1234';
+        }
+        if (!parsed.asetukset) {
+          parsed.asetukset = { timer: false };
+        }
+        if (!parsed.aihetasot) {
+          parsed.aihetasot = {
+            kertolaskut: 1,
+            jakolaskut: 1,
+            murtoluvut: 1,
+            lukualue: 1,
+            mittaaminen: 1,
+            sanalliset: 1,
+            laskujarjestys: 1
+          };
+        } else {
+          parsed.aihetasot.laskujarjestys = parsed.aihetasot.laskujarjestys || 1;
         }
         // Tarkistetaan streak päivittyneelle päivälle
         this.checkStreak(parsed);
@@ -128,6 +158,10 @@ class KouluApuriApp {
   // ==========================================
 
   showView(viewId) {
+    if (viewId !== 'harjoitus-view' && this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
     document.querySelectorAll('.view-screen').forEach((el) => {
       el.classList.remove('active');
     });
@@ -197,6 +231,10 @@ class KouluApuriApp {
     if (exitSessionBtn) {
       exitSessionBtn.addEventListener('click', () => {
         if (confirm('Haluatko keskeyttää harjoituksen? Edistymistä ei tallenneta tältä erää.')) {
+          if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+          }
           this.showView('koti-view');
         }
       });
@@ -208,6 +246,18 @@ class KouluApuriApp {
       soundToggle.addEventListener('click', () => {
         const isEnabled = window.sounds.toggle();
         soundToggle.textContent = isEnabled ? '🔊' : '🔇';
+      });
+    }
+
+    // Sekuntikello / Ajanotto päälle/pois
+    const timerToggle = document.getElementById('btn-toggle-timer');
+    if (timerToggle) {
+      timerToggle.addEventListener('click', () => {
+        if (!this.state.asetukset) this.state.asetukset = { timer: false };
+        this.state.asetukset.timer = !this.state.asetukset.timer;
+        this.saveState();
+        this.updateTimerButtonState();
+        window.sounds.playClick();
       });
     }
 
@@ -276,6 +326,32 @@ class KouluApuriApp {
 
     // Kertausaikataulu ja tulevat kokeet
     this.renderExamRadar();
+
+    // Päivitetään ajastinpainikkeen tila
+    this.updateTimerButtonState();
+
+    // Päivitetään aihetasot painikkeisiin
+    this.renderTopicLevels();
+  }
+
+  updateTimerButtonState() {
+    const timerToggle = document.getElementById('btn-toggle-timer');
+    if (timerToggle) {
+      const isTimerOn = !!(this.state.asetukset && this.state.asetukset.timer);
+      timerToggle.classList.toggle('active', isTimerOn);
+      timerToggle.title = isTimerOn ? 'Ajanotto & nopeusbonus päällä (napauta sulkeaksesi)' : 'Ajanotto & nopeusbonus pois päältä (napauta aktivoidaksesi)';
+    }
+  }
+
+  renderTopicLevels() {
+    const topics = ['kertolaskut', 'jakolaskut', 'murtoluvut', 'lukualue', 'mittaaminen', 'sanalliset', 'laskujarjestys'];
+    topics.forEach(t => {
+      const tag = document.getElementById(`level-tag-${t}`);
+      if (tag) {
+        const lvl = (this.state.aihetasot && this.state.aihetasot[t]) ? this.state.aihetasot[t] : 1;
+        tag.textContent = `Taso ${lvl}`;
+      }
+    });
   }
 
   getLevelTitle(level) {
@@ -378,8 +454,15 @@ class KouluApuriApp {
   // ==========================================
 
   startExerciseSession(topic, count = 10, isDaily = false, examData = null) {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+
+    const topicLevel = (this.state.aihetasot && this.state.aihetasot[topic]) ? this.state.aihetasot[topic] : 1;
     this.currentSession = {
       topic: topic,
+      topicLevel: topicLevel,
       examData: examData,
       totalCount: count,
       isDaily: isDaily,
@@ -387,15 +470,16 @@ class KouluApuriApp {
       currentIndex: 0,
       correctCount: 0,
       xpGained: 0,
-      coinsGained: 0
+      coinsGained: 0,
+      times: []
     };
 
     // Luodaan sessiolle tehtäväpaketti
     for (let i = 0; i < count; i++) {
       if (examData && examData.aihealueet) {
-        this.currentSession.questions.push(window.mathEngine.generateByTopicList(examData.aihealueet));
+        this.currentSession.questions.push(window.mathEngine.generateByTopicList(examData.aihealueet, this.state.aihetasot));
       } else {
-        this.currentSession.questions.push(window.mathEngine.generateByTopic(topic));
+        this.currentSession.questions.push(window.mathEngine.generateByTopic(topic, topicLevel));
       }
     }
 
@@ -406,6 +490,30 @@ class KouluApuriApp {
   renderCurrentQuestion() {
     const s = this.currentSession;
     const q = s.questions[s.currentIndex];
+
+    // Nollataan ja käynnistetään ajastin tarvittaessa
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+
+    const timerBadge = document.getElementById('exercise-timer-badge');
+    const timerDisplay = document.getElementById('exercise-timer-display');
+    const isTimerActive = !!(this.state.asetukset && this.state.asetukset.timer);
+
+    this.questionStartTime = Date.now();
+    if (isTimerActive && timerBadge) {
+      timerBadge.classList.remove('hidden');
+      if (timerDisplay) timerDisplay.textContent = '0.0s';
+      this.timerInterval = setInterval(() => {
+        if (this.questionStartTime && timerDisplay) {
+          const elapsed = (Date.now() - this.questionStartTime) / 1000;
+          timerDisplay.textContent = `${elapsed.toFixed(1)}s`;
+        }
+      }, 100);
+    } else if (timerBadge) {
+      timerBadge.classList.add('hidden');
+    }
 
     // Päivitetään edistymispalkki
     const progressText = document.getElementById('exercise-progress-text');
@@ -540,6 +648,16 @@ class KouluApuriApp {
     const userVal = inputDisplay.value;
     if (!userVal) return;
 
+    // Pysäytetään ajastin tälle kysymykselle
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+    const elapsedSeconds = this.questionStartTime ? (Date.now() - this.questionStartTime) / 1000 : null;
+    if (elapsedSeconds !== null && s.times) {
+      s.times.push(elapsedSeconds);
+    }
+
     const q = s.questions[s.currentIndex];
     const isCorrect = window.mathEngine.checkAnswer(userVal, q.answer);
 
@@ -550,10 +668,24 @@ class KouluApuriApp {
       window.sounds.playSuccess();
       window.confetti.launch(20);
       s.correctCount++;
-      s.xpGained += 10;
+
+      let speedBonus = 0;
+      let speedText = '';
+      if (this.state.asetukset && this.state.asetukset.timer && elapsedSeconds !== null) {
+        if (elapsedSeconds < 4.0) {
+          speedBonus = 2;
+          speedText = ` • ⚡ Salama! (${elapsedSeconds.toFixed(1)}s, +2 XP)`;
+        } else if (elapsedSeconds < 8.0) {
+          speedBonus = 1;
+          speedText = ` • ⚡ Nopea! (${elapsedSeconds.toFixed(1)}s, +1 XP)`;
+        }
+      }
+
+      const earnedXp = 2 + speedBonus;
+      s.xpGained += earnedXp;
       s.coinsGained += 1;
 
-      this.showFeedbackModal(true, 'Mahtavaa! Oikein meni! ⭐ +10 XP', q.hint, () => {
+      this.showFeedbackModal(true, `Mahtavaa! Oikein meni! ⭐ +${earnedXp} XP${speedText}`, q.hint, () => {
         this.nextQuestion();
       });
     } else {
@@ -598,6 +730,11 @@ class KouluApuriApp {
   }
 
   finishSession() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+
     const s = this.currentSession;
     const p = this.state.profiili;
 
@@ -610,8 +747,27 @@ class KouluApuriApp {
       p.paivanTreeniTehty = true;
       p.streak += 1;
       p.viimeisinPelipaiva = new Date().toISOString().split('T')[0];
-      p.xp += 25; // Bonus
-      p.kolikot += 5;
+      p.xp += 10; // Suhteutettu päiväbonus
+      p.kolikot += 2;
+    }
+
+    // Mukautuva vaikeustason päivitys (Adaptive difficulty)
+    if (s.topic && s.topic !== 'koe' && s.topic !== 'sekoitus' && s.totalCount >= 5) {
+      const rate = s.correctCount / s.totalCount;
+      if (!this.state.aihetasot) {
+        this.state.aihetasot = {
+          kertolaskut: 1, jakolaskut: 1, murtoluvut: 1,
+          lukualue: 1, mittaaminen: 1, sanalliset: 1, laskujarjestys: 1
+        };
+      }
+      const curLevel = this.state.aihetasot[s.topic] || 1;
+      if (rate >= 0.8 && curLevel < 3) {
+        this.state.aihetasot[s.topic] = curLevel + 1;
+        s.levelChangeMsg = `🎉 Taitotaso nousi! Olet aiheessa nyt tasolla ${curLevel + 1} ⭐`;
+      } else if (rate <= 0.3 && curLevel > 1) {
+        this.state.aihetasot[s.topic] = curLevel - 1;
+        s.levelChangeMsg = `🌱 Vaikeustasoa sovitettiin: siirryttiin tasolle ${curLevel - 1} vahvistamaan perusteita.`;
+      }
     }
 
     // Saavutusten tarkistus
@@ -630,11 +786,33 @@ class KouluApuriApp {
     const scoreText = document.getElementById('summary-score');
     const xpText = document.getElementById('summary-xp');
     const starsText = document.getElementById('summary-stars');
+    const timerInfo = document.getElementById('summary-timer-info');
+    const levelInfo = document.getElementById('summary-level-info');
     const closeBtn = document.getElementById('summary-close-btn');
 
     scoreText.textContent = `${s.correctCount} / ${s.totalCount} oikein!`;
     xpText.textContent = `+${s.xpGained} XP`;
-    starsText.textContent = `+${s.coinsGained} Tähteä`;
+    starsText.textContent = `+${s.coinsGained} ⭐`;
+
+    if (s.times && s.times.length > 0 && this.state.asetukset && this.state.asetukset.timer) {
+      const avgTime = (s.times.reduce((a, b) => a + b, 0) / s.times.length).toFixed(1);
+      const fastest = Math.min(...s.times).toFixed(1);
+      if (timerInfo) {
+        timerInfo.classList.remove('hidden');
+        timerInfo.textContent = `⏱️ Keskimääräinen vastausaika: ${avgTime}s (Nopein: ${fastest}s)`;
+      }
+    } else if (timerInfo) {
+      timerInfo.classList.add('hidden');
+      timerInfo.textContent = '';
+    }
+
+    if (s.levelChangeMsg && levelInfo) {
+      levelInfo.classList.remove('hidden');
+      levelInfo.textContent = s.levelChangeMsg;
+    } else if (levelInfo) {
+      levelInfo.classList.add('hidden');
+      levelInfo.textContent = '';
+    }
 
     modal.classList.add('active');
 
@@ -836,6 +1014,11 @@ class KouluApuriApp {
     const dateInput = document.getElementById('input-exam-date');
     if (dateInput && !dateInput.min) {
       dateInput.min = new Date().toISOString().split('T')[0];
+    }
+
+    const starCount = document.getElementById('parent-stars-count');
+    if (starCount) {
+      starCount.textContent = this.state.profiili ? (this.state.profiili.kolikot || 0) : 0;
     }
 
     this.renderParentExamsList();
@@ -1071,6 +1254,24 @@ class KouluApuriApp {
       });
     }
 
+    // Nollaa tähtisaldo
+    const resetStarsBtn = document.getElementById('btn-reset-stars');
+    if (resetStarsBtn) {
+      resetStarsBtn.addEventListener('click', () => {
+        const currentStars = this.state.profiili ? (this.state.profiili.kolikot || 0) : 0;
+        if (confirm(`Haluatko varmasti nollata lapsen tähtisaldon? Nykyinen saldo on ${currentStars} ⭐.`)) {
+          if (this.state.profiili) {
+            this.state.profiili.kolikot = 0;
+          }
+          this.saveState();
+          this.renderParentView();
+          this.renderDashboard();
+          this.renderRewards();
+          alert('Tähtisaldo on nollattu.');
+        }
+      });
+    }
+
     // Nollaa edistyminen
     const resetBtn = document.getElementById('btn-reset-data');
     if (resetBtn) {
@@ -1165,16 +1366,35 @@ class KouluApuriApp {
       ? Math.round((stats.oikeinLaskettu / stats.yhteensaLaskettu) * 100) 
       : 0;
 
+    const topicLabels = {
+      kertolaskut: 'Kertolaskut',
+      jakolaskut: 'Jakolaskut',
+      murtoluvut: 'Murtoluvut',
+      lukualue: 'Lukualue & pyöristys',
+      mittaaminen: 'Mittaaminen & kellonajat',
+      sanalliset: 'Sanalliset tehtävät',
+      laskujarjestys: 'Laskujärjestys'
+    };
+
     let topicsHtml = '';
-    for (const [topic, data] of Object.entries(stats.aiheittain)) {
+    const allTopics = ['kertolaskut', 'jakolaskut', 'murtoluvut', 'lukualue', 'mittaaminen', 'sanalliset', 'laskujarjestys'];
+
+    allTopics.forEach(t => {
+      const data = (stats.aiheittain && stats.aiheittain[t]) ? stats.aiheittain[t] : { total: 0, correct: 0 };
+      const lvl = (this.state.aihetasot && this.state.aihetasot[t]) ? this.state.aihetasot[t] : 1;
       const topicAcc = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
+      const label = topicLabels[t] || t;
+
       topicsHtml += `
-        <div class="stat-row">
-          <span>${topic.toUpperCase()}</span>
-          <span>${data.correct}/${data.total} oikein (${topicAcc}%)</span>
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border);">
+          <div>
+            <strong>${label}</strong>
+            <span class="topic-level-tag" style="margin-left: 8px;">Taso ${lvl}</span>
+          </div>
+          <span class="text-sm text-muted">${data.correct}/${data.total} oikein (${topicAcc}%)</span>
         </div>
       `;
-    }
+    });
 
     container.innerHTML = `
       <div class="stats-overview">
@@ -1187,8 +1407,8 @@ class KouluApuriApp {
           <div class="stat-label">Osumatarkkuus</div>
         </div>
       </div>
-      <div class="topic-stats-list">
-        ${topicsHtml || '<p class="text-muted">Ei vielä riittävästi suorituksia tilastoihin.</p>'}
+      <div class="topic-stats-list" style="margin-top: 14px;">
+        ${topicsHtml}
       </div>
     `;
   }

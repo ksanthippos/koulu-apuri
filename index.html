@@ -27,6 +27,7 @@
     <div class="header-status">
       <div class="status-badge" id="user-streak">🔥 1 pv putki</div>
       <div class="status-badge coins" id="user-coins">⭐ 0</div>
+      <button class="btn-icon" id="btn-toggle-timer" title="Ajanotto & nopeusbonus päälle/pois">⏱️</button>
       <button class="btn-icon" id="btn-toggle-sound" title="Äänet päälle/pois">🔊</button>
     </div>
   </header>
@@ -79,36 +80,43 @@
           <span class="topic-icon">⚡</span>
           <span class="topic-title">Kertolaskut</span>
           <span class="topic-desc">Taulut 1–10 & kympit</span>
+          <span class="topic-level-tag" id="level-tag-kertolaskut">Taso 1</span>
         </button>
         <button class="topic-btn" data-start-topic="jakolaskut">
           <span class="topic-icon">➗</span>
           <span class="topic-title">Jakolaskut</span>
           <span class="topic-desc">Jakoviiva & jakojäännös</span>
+          <span class="topic-level-tag" id="level-tag-jakolaskut">Taso 1</span>
         </button>
         <button class="topic-btn" data-start-topic="murtoluvut">
           <span class="topic-icon">🍰</span>
           <span class="topic-title">Murtoluvut</span>
           <span class="topic-desc">Osa luvusta & vertailu</span>
+          <span class="topic-level-tag" id="level-tag-murtoluvut">Taso 1</span>
         </button>
         <button class="topic-btn" data-start-topic="lukualue">
           <span class="topic-icon">🔢</span>
           <span class="topic-title">Lukualue 0–100k</span>
           <span class="topic-desc">Pyöristys & lukujonot</span>
+          <span class="topic-level-tag" id="level-tag-lukualue">Taso 1</span>
         </button>
         <button class="topic-btn" data-start-topic="mittaaminen">
           <span class="topic-icon">📏</span>
           <span class="topic-title">Mittaaminen</span>
           <span class="topic-desc">Piiri, yksiköt & kello</span>
+          <span class="topic-level-tag" id="level-tag-mittaaminen">Taso 1</span>
         </button>
         <button class="topic-btn" data-start-topic="sanalliset">
           <span class="topic-icon">💡</span>
           <span class="topic-title">Sanalliset</span>
           <span class="topic-desc">Arjen matikkapähkinät</span>
+          <span class="topic-level-tag" id="level-tag-sanalliset">Taso 1</span>
         </button>
         <button class="topic-btn" data-start-topic="laskujarjestys">
           <span class="topic-icon">🧮</span>
           <span class="topic-title">Laskujärjestys</span>
           <span class="topic-desc">Sulut & yhdistetyt laskut</span>
+          <span class="topic-level-tag" id="level-tag-laskujarjestys">Taso 1</span>
         </button>
         <button class="topic-btn" data-start-topic="sekoitus">
           <span class="topic-icon">🎲</span>
@@ -125,6 +133,7 @@
       <div class="exercise-container">
         <div class="exercise-top-bar">
           <span class="status-badge" id="exercise-category">Kertolaskut</span>
+          <div class="status-badge timer-badge hidden" id="exercise-timer-badge">⏱️ <span id="exercise-timer-display">0.0</span>s</div>
           <span id="exercise-progress-text" class="text-sm text-muted">Kysymys 1 / 10</span>
           <button class="btn btn-secondary btn-sm" id="btn-exit-session">Lopeta</button>
         </div>
@@ -249,11 +258,19 @@
 
       <!-- Palkintojen hallinta -->
       <div class="parent-card">
-        <h3 style="margin-bottom: 10px;">🎁 Palkintojen kuittaus</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin: 0;">🎁 Palkintojen kuittaus</h3>
+          <div style="font-weight: 800; color: #B45309; font-size: 15px;">
+            ⭐ Tähtiä nyt: <span id="parent-stars-count">0</span>
+          </div>
+        </div>
         <p class="text-sm text-muted" style="margin-bottom: 10px;">
           Kun lapsi on saanut sovitun palkinnon tosielämässä, voit merkitä sen käytetyksi täältä.
         </p>
         <div id="parent-rewards-admin"></div>
+        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end;">
+          <button class="btn btn-warning btn-sm" id="btn-reset-stars">⭐ Nollaa tähtisaldo</button>
+        </div>
       </div>
 
       <!-- PIN-koodin hallinta -->
@@ -330,6 +347,9 @@
       <h2 style="margin-bottom: 6px;">Hienoa työtä!</h2>
       <p id="summary-score" style="font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 14px;">10 / 10 oikein!</p>
       
+      <div id="summary-timer-info" class="text-sm text-muted hidden" style="margin-bottom: 10px; font-weight: 700;"></div>
+      <div id="summary-level-info" class="text-sm hidden" style="margin-bottom: 14px; font-weight: 700; color: var(--primary); padding: 8px 12px; background: var(--primary-light); border-radius: var(--radius-sm);"></div>
+
       <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px;">
         <div class="stat-box" style="padding: 10px 18px;">
           <div class="stat-num" id="summary-xp">+100 XP</div>
