@@ -1,8 +1,10 @@
-const CACHE_NAME = 'koulu-apuri-v3';
+const CACHE_NAME = 'koulu-apuri-v1.04';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './css/style.css',
+  './version.json',
+  './js/version.js',
   './js/app.js',
   './js/mathEngine.js',
   './js/subjectEngine.js',

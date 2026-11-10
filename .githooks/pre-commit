@@ -1,0 +1,5 @@
+#!/bin/sh
+# Koulu-apuri: Automaattinen versionnosto commitin yhteydessä
+if [ -f scripts/bump-version.js ]; then
+  node scripts/bump-version.js
+fi
