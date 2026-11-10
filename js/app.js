@@ -20,17 +20,31 @@ class KouluApuriApp {
   getDefaultState() {
     return {
       parentPin: '1234',
+      valittuAine: 'matematiikka',
       asetukset: {
         timer: false
       },
       aihetasot: {
+        // Matematiikka
         kertolaskut: 1,
         jakolaskut: 1,
         murtoluvut: 1,
         lukualue: 1,
         mittaaminen: 1,
         sanalliset: 1,
-        laskujarjestys: 1
+        laskujarjestys: 1,
+        // Ympäristöoppi
+        ymppi_metsa: 1,
+        ymppi_vedet: 1,
+        ymppi_keho: 1,
+        ymppi_kartat: 1,
+        ymppi_kierratys: 1,
+        // Yhteiskuntaoppi
+        yht_perhe: 1,
+        yht_koulu: 1,
+        yht_media: 1,
+        yht_raha: 1,
+        yht_oikeudet: 1
       },
       profiili: {
         nimi: 'Oppilas',
@@ -46,6 +60,7 @@ class KouluApuriApp {
         {
           id: 'esimerkki-koe-1',
           nimi: 'Matematiikan jakson koe',
+          subject: 'matematiikka',
           paivamaara: this.getRelativeDateString(10), // 10 päivän päästä
           aihealueet: ['Kertotaulut 6–9', 'Jakolaskut & jakojäännös', 'Murtoluvut'],
           tavoiteLaskujaPaivassa: 10
@@ -87,21 +102,24 @@ class KouluApuriApp {
         if (!parsed.parentPin) {
           parsed.parentPin = '1234';
         }
+        if (!parsed.valittuAine) {
+          parsed.valittuAine = 'matematiikka';
+        }
         if (!parsed.asetukset) {
           parsed.asetukset = { timer: false };
         }
         if (!parsed.aihetasot) {
-          parsed.aihetasot = {
-            kertolaskut: 1,
-            jakolaskut: 1,
-            murtoluvut: 1,
-            lukualue: 1,
-            mittaaminen: 1,
-            sanalliset: 1,
-            laskujarjestys: 1
-          };
-        } else {
-          parsed.aihetasot.laskujarjestys = parsed.aihetasot.laskujarjestys || 1;
+          parsed.aihetasot = {};
+        }
+        const defaultLevels = {
+          kertolaskut: 1, jakolaskut: 1, murtoluvut: 1, lukualue: 1, mittaaminen: 1, sanalliset: 1, laskujarjestys: 1,
+          ymppi_metsa: 1, ymppi_vedet: 1, ymppi_keho: 1, ymppi_kartat: 1, ymppi_kierratys: 1,
+          yht_perhe: 1, yht_koulu: 1, yht_media: 1, yht_raha: 1, yht_oikeudet: 1
+        };
+        for (const [key, val] of Object.entries(defaultLevels)) {
+          if (!parsed.aihetasot[key]) {
+            parsed.aihetasot[key] = val;
+          }
         }
         // Tarkistetaan streak päivittyneelle päivälle
         this.checkStreak(parsed);
@@ -196,11 +214,23 @@ class KouluApuriApp {
       });
     });
 
+    // Oppiaineen valinta (Matikka, Ymppi, Yhteiskuntaoppi)
+    document.querySelectorAll('.subject-card').forEach((card) => {
+      card.addEventListener('click', (e) => {
+        const subject = e.currentTarget.dataset.subject;
+        this.state.valittuAine = subject;
+        this.saveState();
+        this.updateActiveSubjectUI();
+        window.sounds.playClick();
+      });
+    });
+
     // Pika-harjoittelupainikkeet etusivulla
     document.querySelectorAll('[data-start-topic]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const topic = e.currentTarget.dataset.startTopic;
-        this.startExerciseSession(topic, 10);
+        const subject = e.currentTarget.dataset.startSubject || this.state.valittuAine || 'matematiikka';
+        this.startExerciseSession(topic, 10, false, null, subject);
       });
     });
 
@@ -208,7 +238,9 @@ class KouluApuriApp {
     const dailyBtn = document.getElementById('btn-daily-workout');
     if (dailyBtn) {
       dailyBtn.addEventListener('click', () => {
-        this.startExerciseSession('sekoitus', 10, true);
+        const subject = this.state.valittuAine || 'matematiikka';
+        const mixTopic = subject === 'matematiikka' ? 'sekoitus' : (subject === 'ymparisto' ? 'ymppi_sekoitus' : 'yht_sekoitus');
+        this.startExerciseSession(mixTopic, 10, true, null, subject);
       });
     }
 
@@ -330,8 +362,60 @@ class KouluApuriApp {
     // Päivitetään ajastinpainikkeen tila
     this.updateTimerButtonState();
 
+    // Päivitetään aktiivisen oppiaineen näkymä
+    this.updateActiveSubjectUI();
+
     // Päivitetään aihetasot painikkeisiin
     this.renderTopicLevels();
+  }
+
+  updateActiveSubjectUI() {
+    const subject = this.state.valittuAine || 'matematiikka';
+
+    // Päivitetään ainekorttien aktiivisuus
+    document.querySelectorAll('.subject-card').forEach((card) => {
+      card.classList.toggle('active', card.dataset.subject === subject);
+    });
+
+    // Näytetään aktiivisen aineen aiheruudukko ja piilotetaan muut
+    const grids = {
+      matematiikka: document.getElementById('topics-grid-matematiikka'),
+      ymparisto: document.getElementById('topics-grid-ymparisto'),
+      yhteiskunta: document.getElementById('topics-grid-yhteiskunta')
+    };
+
+    for (const [s, grid] of Object.entries(grids)) {
+      if (grid) {
+        if (s === subject) {
+          grid.classList.remove('hidden');
+        } else {
+          grid.classList.add('hidden');
+        }
+      }
+    }
+
+    // Päivitetään otsikkoteksti
+    const headingText = document.getElementById('topics-heading-text');
+    if (headingText) {
+      const titles = {
+        matematiikka: 'Matematiikan aihealueet',
+        ymparisto: 'Ympäristöopin aihealueet',
+        yhteiskunta: 'Yhteiskuntaopin aihealueet'
+      };
+      headingText.textContent = titles[subject] || 'Aihealueet';
+    }
+
+    // Päivitetään päivän treeni -teksti
+    const dailyStatus = document.getElementById('daily-workout-status');
+    const p = this.state.profiili;
+    if (dailyStatus && !p.paivanTreeniTehty) {
+      const names = {
+        matematiikka: 'Matematiikka',
+        ymparisto: 'Ympäristöoppi',
+        yhteiskunta: 'Yhteiskuntaoppi'
+      };
+      dailyStatus.textContent = `🎯 Tee päivän 10 tehtävän treeni (${names[subject] || 'Matematiikka'}) ja ansaitse streak-bonus & tähtiä!`;
+    }
   }
 
   updateTimerButtonState() {
@@ -344,8 +428,12 @@ class KouluApuriApp {
   }
 
   renderTopicLevels() {
-    const topics = ['kertolaskut', 'jakolaskut', 'murtoluvut', 'lukualue', 'mittaaminen', 'sanalliset', 'laskujarjestys'];
-    topics.forEach(t => {
+    const allTopics = [
+      'kertolaskut', 'jakolaskut', 'murtoluvut', 'lukualue', 'mittaaminen', 'sanalliset', 'laskujarjestys',
+      'ymppi_metsa', 'ymppi_vedet', 'ymppi_keho', 'ymppi_kartat', 'ymppi_kierratys',
+      'yht_perhe', 'yht_koulu', 'yht_media', 'yht_raha', 'yht_oikeudet'
+    ];
+    allTopics.forEach(t => {
       const tag = document.getElementById(`level-tag-${t}`);
       if (tag) {
         const lvl = (this.state.aihetasot && this.state.aihetasot[t]) ? this.state.aihetasot[t] : 1;
@@ -420,11 +508,21 @@ class KouluApuriApp {
       recommendation = `🌱 Hyvää aikaa kerrata: Ota tänään 5–10 laskua koealueelta.`;
     }
 
+    const examSubject = nextExam.subject || 'matematiikka';
+    const subjBadge = examSubject === 'ymparisto' 
+      ? '<span class="status-badge" style="background: #ECFDF5; color: #047857; font-size: 11px;">🌿 Ymppi</span>'
+      : (examSubject === 'yhteiskunta'
+          ? '<span class="status-badge" style="background: #FFFBEB; color: #B45309; font-size: 11px;">🏛️ Yhteiskunta</span>'
+          : '<span class="status-badge" style="background: #EEF2FF; color: #4338CA; font-size: 11px;">📐 Matikka</span>');
+
     container.innerHTML = `
       <div class="exam-card">
         <div class="exam-header">
           <div>
-            <h3 class="exam-title">${nextExam.nimi}</h3>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+              <h3 class="exam-title">${nextExam.nimi}</h3>
+              ${subjBadge}
+            </div>
             <span class="exam-date">📅 ${new Date(nextExam.paivamaara).toLocaleDateString('fi-FI')}</span>
           </div>
           <span class="exam-countdown ${badgeColor}">${nextExam.diffDays === 0 ? 'TÄNÄÄN!' : `${nextExam.diffDays} pv aikaa`}</span>
@@ -444,7 +542,7 @@ class KouluApuriApp {
     const startBtn = document.getElementById('btn-start-exam-practice');
     if (startBtn) {
       startBtn.addEventListener('click', () => {
-        this.startExerciseSession('koe', nextExam.tavoiteLaskujaPaivassa || 10, false, nextExam);
+        this.startExerciseSession('koe', nextExam.tavoiteLaskujaPaivassa || 10, false, nextExam, examSubject);
       });
     }
   }
@@ -453,14 +551,16 @@ class KouluApuriApp {
   // HARJOITTELUSYLI JA TEHTÄVIEN KULKU
   // ==========================================
 
-  startExerciseSession(topic, count = 10, isDaily = false, examData = null) {
+  startExerciseSession(topic, count = 10, isDaily = false, examData = null, subject = null) {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
     }
 
+    const activeSubject = subject || (examData && examData.subject) || this.state.valittuAine || 'matematiikka';
     const topicLevel = (this.state.aihetasot && this.state.aihetasot[topic]) ? this.state.aihetasot[topic] : 1;
     this.currentSession = {
+      subject: activeSubject,
       topic: topic,
       topicLevel: topicLevel,
       examData: examData,
@@ -476,10 +576,19 @@ class KouluApuriApp {
 
     // Luodaan sessiolle tehtäväpaketti
     for (let i = 0; i < count; i++) {
-      if (examData && examData.aihealueet) {
-        this.currentSession.questions.push(window.mathEngine.generateByTopicList(examData.aihealueet, this.state.aihetasot));
+      if (activeSubject === 'matematiikka') {
+        if (examData && examData.aihealueet) {
+          this.currentSession.questions.push(window.mathEngine.generateByTopicList(examData.aihealueet, this.state.aihetasot));
+        } else {
+          this.currentSession.questions.push(window.mathEngine.generateByTopic(topic, topicLevel));
+        }
       } else {
-        this.currentSession.questions.push(window.mathEngine.generateByTopic(topic, topicLevel));
+        // Ympäristöoppi tai Yhteiskuntaoppi
+        if (examData && examData.aihealueet) {
+          this.currentSession.questions.push(window.subjectEngine.generateByTopicList(activeSubject, examData.aihealueet, this.state.aihetasot));
+        } else {
+          this.currentSession.questions.push(window.subjectEngine.generateQuestion(activeSubject, topic, topicLevel));
+        }
       }
     }
 
@@ -534,20 +643,30 @@ class KouluApuriApp {
     hintBox.classList.add('hidden');
     hintBox.textContent = '';
 
-    // Mahdollinen visuaalinen tuki (esim. murtoluvut)
-    if (q.visual && q.visual.type === 'pie') {
+    // Mahdollinen visuaalinen tuki (piirakka vs. SVG-vektorigrafiikka)
+    if (q.visual) {
       visualContainer.classList.remove('hidden');
-      visualContainer.innerHTML = this.renderFractionSVG(q.visual.num, q.visual.den);
+      if (q.visual.type === 'pie') {
+        visualContainer.innerHTML = this.renderFractionSVG(q.visual.num, q.visual.den);
+      } else if (window.subjectEngine) {
+        visualContainer.innerHTML = window.subjectEngine.renderVisualSVG(q.visual);
+      }
     } else {
       visualContainer.classList.add('hidden');
       visualContainer.innerHTML = '';
     }
 
     // Monivalinta vs. Numpad
+    const submitBtn = document.getElementById('btn-submit-answer');
     if (q.type === 'choice') {
       choiceContainer.classList.remove('hidden');
       numpadContainer.classList.add('hidden');
+      if (submitBtn) submitBtn.classList.add('hidden');
       inputDisplay.readOnly = true;
+
+      // Jos jokin vaihtoehtoteksti on pitkä (> 25 merkkiä), asetetaan 1-sarakkeinen tila
+      const hasLongOption = q.options.some(opt => String(opt).length > 25);
+      choiceContainer.classList.toggle('single-col', hasLongOption);
 
       choiceContainer.innerHTML = q.options.map(opt => `
         <button class="choice-btn" data-choice="${opt}">${opt}</button>
@@ -562,6 +681,7 @@ class KouluApuriApp {
     } else {
       choiceContainer.classList.add('hidden');
       numpadContainer.classList.remove('hidden');
+      if (submitBtn) submitBtn.classList.remove('hidden');
       inputDisplay.readOnly = false;
     }
   }
@@ -659,10 +779,17 @@ class KouluApuriApp {
     }
 
     const q = s.questions[s.currentIndex];
-    const isCorrect = window.mathEngine.checkAnswer(userVal, q.answer);
+    let isCorrect = false;
+    if (s.subject === 'matematiikka') {
+      isCorrect = window.mathEngine.checkAnswer(userVal, q.answer);
+    } else if (window.subjectEngine) {
+      isCorrect = window.subjectEngine.checkAnswer(userVal, q.answer);
+    } else {
+      isCorrect = String(userVal).trim().toLowerCase() === String(q.answer).trim().toLowerCase();
+    }
 
     // Kirjataan tilastot
-    this.recordStats(q.topic, isCorrect);
+    this.recordStats(q.topic, isCorrect, s.subject);
 
     if (isCorrect) {
       window.sounds.playSuccess();
@@ -752,18 +879,19 @@ class KouluApuriApp {
     }
 
     // Mukautuva vaikeustason päivitys (Adaptive difficulty)
-    if (s.topic && s.topic !== 'koe' && s.topic !== 'sekoitus' && s.totalCount >= 5) {
+    if (s.topic && !s.topic.includes('sekoitus') && s.topic !== 'koe' && s.totalCount >= 5) {
       const rate = s.correctCount / s.totalCount;
       if (!this.state.aihetasot) {
-        this.state.aihetasot = {
-          kertolaskut: 1, jakolaskut: 1, murtoluvut: 1,
-          lukualue: 1, mittaaminen: 1, sanalliset: 1, laskujarjestys: 1
-        };
+        this.state.aihetasot = {};
       }
       const curLevel = this.state.aihetasot[s.topic] || 1;
+      let topicTitle = s.topic;
+      if ((s.subject === 'ymparisto' || s.subject === 'yhteiskunta') && window.subjectEngine) {
+        topicTitle = window.subjectEngine.getTopicTitle(s.subject, s.topic);
+      }
       if (rate >= 0.8 && curLevel < 3) {
         this.state.aihetasot[s.topic] = curLevel + 1;
-        s.levelChangeMsg = `🎉 Taitotaso nousi! Olet aiheessa nyt tasolla ${curLevel + 1} ⭐`;
+        s.levelChangeMsg = `🎉 Taitotaso nousi! Aiheessa "${topicTitle}" olet nyt tasolla ${curLevel + 1} ⭐`;
       } else if (rate <= 0.3 && curLevel > 1) {
         this.state.aihetasot[s.topic] = curLevel - 1;
         s.levelChangeMsg = `🌱 Vaikeustasoa sovitettiin: siirryttiin tasolle ${curLevel - 1} vahvistamaan perusteita.`;
@@ -824,16 +952,17 @@ class KouluApuriApp {
     };
   }
 
-  recordStats(topic, isCorrect) {
+  recordStats(topic, isCorrect, subject = 'matematiikka') {
     const stats = this.state.tilastot;
     stats.yhteensaLaskettu++;
     if (isCorrect) stats.oikeinLaskettu++;
 
     if (!stats.aiheittain[topic]) {
-      stats.aiheittain[topic] = { total: 0, correct: 0 };
+      stats.aiheittain[topic] = { total: 0, correct: 0, subject: subject };
     }
     stats.aiheittain[topic].total++;
     if (isCorrect) stats.aiheittain[topic].correct++;
+    stats.aiheittain[topic].subject = subject;
 
     this.saveState();
   }
@@ -1031,6 +1160,8 @@ class KouluApuriApp {
     if (form) form.reset();
     const idInput = document.getElementById('input-exam-id');
     if (idInput) idInput.value = '';
+    const subjSelect = document.getElementById('input-exam-subject');
+    if (subjSelect) subjSelect.value = 'matematiikka';
     const titleEl = document.getElementById('exam-form-title');
     if (titleEl) titleEl.textContent = '📅 Lisää tuleva koe';
     const saveBtn = document.getElementById('btn-save-exam');
@@ -1038,6 +1169,7 @@ class KouluApuriApp {
     const cancelBtn = document.getElementById('btn-cancel-edit-exam');
     if (cancelBtn) cancelBtn.classList.add('hidden');
     document.querySelectorAll('#exam-topic-chips .topic-chip').forEach(c => c.classList.remove('selected'));
+    this.updateExamChipsVisibility();
   }
 
   editExam(id) {
@@ -1045,6 +1177,7 @@ class KouluApuriApp {
     if (!exam) return;
 
     const idInput = document.getElementById('input-exam-id');
+    const subjSelect = document.getElementById('input-exam-subject');
     const nameInput = document.getElementById('input-exam-name');
     const dateInput = document.getElementById('input-exam-date');
     const topicsInput = document.getElementById('input-exam-topics');
@@ -1053,12 +1186,15 @@ class KouluApuriApp {
     const cancelBtn = document.getElementById('btn-cancel-edit-exam');
 
     if (idInput) idInput.value = exam.id;
+    if (subjSelect) subjSelect.value = exam.subject || 'matematiikka';
     if (nameInput) nameInput.value = exam.nimi;
     if (dateInput) dateInput.value = exam.paivamaara;
     if (topicsInput) topicsInput.value = exam.aihealueet.join(', ');
     if (titleEl) titleEl.textContent = '✏️ Muokkaa koetta';
     if (saveBtn) saveBtn.textContent = 'Päivitä kokeen tiedot';
     if (cancelBtn) cancelBtn.classList.remove('hidden');
+
+    this.updateExamChipsVisibility();
 
     // Korostetaan valitut aiheet
     const currentTopics = exam.aihealueet.map(t => t.toLowerCase());
@@ -1074,7 +1210,26 @@ class KouluApuriApp {
     }
   }
 
+  updateExamChipsVisibility() {
+    const subjSelect = document.getElementById('input-exam-subject');
+    const subj = subjSelect ? subjSelect.value : 'matematiikka';
+    document.querySelectorAll('#exam-topic-chips .topic-chip').forEach(c => {
+      if (c.classList.contains(`chip-${subj}`)) {
+        c.classList.remove('hidden');
+      } else {
+        c.classList.add('hidden');
+      }
+    });
+  }
+
   bindParentViewEvents() {
+    // Oppiaineen vaihto koe-lomakkeessa
+    const examSubjectSelect = document.getElementById('input-exam-subject');
+    if (examSubjectSelect) {
+      examSubjectSelect.addEventListener('change', () => this.updateExamChipsVisibility());
+      this.updateExamChipsVisibility();
+    }
+
     // Aihe-pikavalintojen klikkaukset
     const topicsInput = document.getElementById('input-exam-topics');
     const chips = document.querySelectorAll('#exam-topic-chips .topic-chip');
@@ -1129,6 +1284,7 @@ class KouluApuriApp {
       addExamForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const examId = document.getElementById('input-exam-id').value;
+        const subject = document.getElementById('input-exam-subject') ? document.getElementById('input-exam-subject').value : 'matematiikka';
         const nimi = document.getElementById('input-exam-name').value.trim();
         const date = document.getElementById('input-exam-date').value;
         const topics = document.getElementById('input-exam-topics').value
@@ -1145,6 +1301,7 @@ class KouluApuriApp {
           const existingIndex = this.state.kokeet.findIndex(k => k.id === examId);
           if (existingIndex >= 0) {
             this.state.kokeet[existingIndex].nimi = nimi;
+            this.state.kokeet[existingIndex].subject = subject;
             this.state.kokeet[existingIndex].paivamaara = date;
             this.state.kokeet[existingIndex].aihealueet = examTopics;
           }
@@ -1153,6 +1310,7 @@ class KouluApuriApp {
           this.state.kokeet.push({
             id: 'koe-' + Date.now(),
             nimi: nimi,
+            subject: subject,
             paivamaara: date,
             aihealueet: examTopics,
             tavoiteLaskujaPaivassa: 10
@@ -1318,11 +1476,19 @@ class KouluApuriApp {
         badgeHtml = `<span class="status-badge bg-blue" style="font-size: 11px;">${diffDays} pv aikaa</span>`;
       }
 
+      const subjectBadges = {
+        matematiikka: '<span class="status-badge" style="background: #EEF2FF; color: #4338CA; font-size: 11px;">📐 Matikka</span>',
+        ymparisto: '<span class="status-badge" style="background: #ECFDF5; color: #047857; font-size: 11px;">🌿 Ymppi</span>',
+        yhteiskunta: '<span class="status-badge" style="background: #FFFBEB; color: #B45309; font-size: 11px;">🏛️ Yhteiskunta</span>'
+      };
+      const subjBadge = subjectBadges[k.subject || 'matematiikka'] || subjectBadges.matematiikka;
+
       return `
         <div class="exam-list-item">
           <div class="exam-item-details">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
               <strong>${k.nimi}</strong>
+              ${subjBadge}
               ${badgeHtml}
             </div>
             <div class="text-sm text-muted">
@@ -1366,32 +1532,66 @@ class KouluApuriApp {
       ? Math.round((stats.oikeinLaskettu / stats.yhteensaLaskettu) * 100) 
       : 0;
 
-    const topicLabels = {
-      kertolaskut: 'Kertolaskut',
-      jakolaskut: 'Jakolaskut',
-      murtoluvut: 'Murtoluvut',
-      lukualue: 'Lukualue & pyöristys',
-      mittaaminen: 'Mittaaminen & kellonajat',
-      sanalliset: 'Sanalliset tehtävät',
-      laskujarjestys: 'Laskujärjestys'
-    };
+    const subjects = [
+      {
+        title: '📐 Matematiikka',
+        topics: [
+          { id: 'kertolaskut', label: 'Kertolaskut' },
+          { id: 'jakolaskut', label: 'Jakolaskut' },
+          { id: 'murtoluvut', label: 'Murtoluvut' },
+          { id: 'lukualue', label: 'Lukualue & pyöristys' },
+          { id: 'mittaaminen', label: 'Mittaaminen & kello' },
+          { id: 'sanalliset', label: 'Sanalliset tehtävät' },
+          { id: 'laskujarjestys', label: 'Laskujärjestys' }
+        ]
+      },
+      {
+        title: '🌿 Ympäristöoppi',
+        topics: [
+          { id: 'ymppi_metsa', label: 'Suomen luonto & metsä' },
+          { id: 'ymppi_vedet', label: 'Vedet & Itämeri' },
+          { id: 'ymppi_keho', label: 'Ihmiskeho & aistit' },
+          { id: 'ymppi_kartat', label: 'Kartat & ilmansuunnat' },
+          { id: 'ymppi_kierratys', label: 'Kierrätys & kestävyys' }
+        ]
+      },
+      {
+        title: '🏛️ Yhteiskuntaoppi',
+        topics: [
+          { id: 'yht_perhe', label: 'Perhe & yhteisöt' },
+          { id: 'yht_koulu', label: 'Koulu & säännöt' },
+          { id: 'yht_media', label: 'Media & digiturva' },
+          { id: 'yht_raha', label: 'Raha, työ & kulutus' },
+          { id: 'yht_oikeudet', label: 'Oikeudet & päätöksenteko' }
+        ]
+      }
+    ];
 
-    let topicsHtml = '';
-    const allTopics = ['kertolaskut', 'jakolaskut', 'murtoluvut', 'lukualue', 'mittaaminen', 'sanalliset', 'laskujarjestys'];
+    let sectionsHtml = '';
+    subjects.forEach(subj => {
+      let rowsHtml = '';
+      subj.topics.forEach(t => {
+        const data = (stats.aiheittain && stats.aiheittain[t.id]) ? stats.aiheittain[t.id] : { total: 0, correct: 0 };
+        const lvl = (this.state.aihetasot && this.state.aihetasot[t.id]) ? this.state.aihetasot[t.id] : 1;
+        const topicAcc = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
 
-    allTopics.forEach(t => {
-      const data = (stats.aiheittain && stats.aiheittain[t]) ? stats.aiheittain[t] : { total: 0, correct: 0 };
-      const lvl = (this.state.aihetasot && this.state.aihetasot[t]) ? this.state.aihetasot[t] : 1;
-      const topicAcc = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
-      const label = topicLabels[t] || t;
-
-      topicsHtml += `
-        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border);">
-          <div>
-            <strong>${label}</strong>
-            <span class="topic-level-tag" style="margin-left: 8px;">Taso ${lvl}</span>
+        rowsHtml += `
+          <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border);">
+            <div>
+              <strong>${t.label}</strong>
+              <span class="topic-level-tag" style="margin-left: 8px;">Taso ${lvl}</span>
+            </div>
+            <span class="text-sm text-muted">${data.correct}/${data.total} oikein (${topicAcc}%)</span>
           </div>
-          <span class="text-sm text-muted">${data.correct}/${data.total} oikein (${topicAcc}%)</span>
+        `;
+      });
+
+      sectionsHtml += `
+        <div style="margin-top: 18px;">
+          <h4 style="margin-bottom: 8px; color: var(--text-main); font-size: 15px;">${subj.title}</h4>
+          <div class="topic-stats-list">
+            ${rowsHtml}
+          </div>
         </div>
       `;
     });
@@ -1400,16 +1600,14 @@ class KouluApuriApp {
       <div class="stats-overview">
         <div class="stat-box">
           <div class="stat-num">${stats.yhteensaLaskettu}</div>
-          <div class="stat-label">Tehtyjä laskuja</div>
+          <div class="stat-label">Tehtyjä tehtäviä</div>
         </div>
         <div class="stat-box">
           <div class="stat-num">${accuracy}%</div>
           <div class="stat-label">Osumatarkkuus</div>
         </div>
       </div>
-      <div class="topic-stats-list" style="margin-top: 14px;">
-        ${topicsHtml}
-      </div>
+      ${sectionsHtml}
     `;
   }
 

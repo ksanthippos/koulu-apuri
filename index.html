@@ -70,58 +70,172 @@
         <!-- Generoidaan JS:llä -->
       </div>
 
-      <!-- Aihealueet -->
+      <!-- Oppiaineen valinta -->
+      <div class="section-title" style="margin-top: 15px;">
+        <span>📚</span>
+        <span>Valitse oppiaine</span>
+      </div>
+      <div class="subject-picker-grid">
+        <button class="subject-card active" data-subject="matematiikka" id="subject-tab-matematiikka">
+          <span class="subject-card-icon">📐</span>
+          <div class="subject-card-info">
+            <span class="subject-card-title">Matematiikka</span>
+            <span class="subject-card-desc">Kertotaulut, murtoluvut & laskujärjestys</span>
+          </div>
+          <span class="subject-card-badge">8 aihetta</span>
+        </button>
+
+        <button class="subject-card" data-subject="ymparisto" id="subject-tab-ymparisto">
+          <span class="subject-card-icon">🌿</span>
+          <div class="subject-card-info">
+            <span class="subject-card-title">Ympäristöoppi</span>
+            <span class="subject-card-desc">Metsä, vedet, ihmiskeho & kartat</span>
+          </div>
+          <span class="subject-card-badge">6 aihetta</span>
+        </button>
+
+        <button class="subject-card" data-subject="yhteiskunta" id="subject-tab-yhteiskunta">
+          <span class="subject-card-icon">🏛️</span>
+          <div class="subject-card-info">
+            <span class="subject-card-title">Yhteiskuntaoppi</span>
+            <span class="subject-card-desc">Yhteisöt, media, raha & oikeudet</span>
+          </div>
+          <span class="subject-card-badge">6 aihetta</span>
+        </button>
+      </div>
+
+      <!-- Aihealueet - otsikko -->
       <div class="section-title" style="margin-top: 15px;">
         <span>🎯</span>
-        <span>Harjoittele aihealueita</span>
+        <span id="topics-heading-text">Matematiikan aihealueet</span>
       </div>
-      <div class="topics-grid">
-        <button class="topic-btn" data-start-topic="kertolaskut">
+
+      <!-- 1. MATEMATIIKKA -->
+      <div class="topics-grid subject-topics" id="topics-grid-matematiikka">
+        <button class="topic-btn" data-start-subject="matematiikka" data-start-topic="kertolaskut">
           <span class="topic-icon">⚡</span>
           <span class="topic-title">Kertolaskut</span>
           <span class="topic-desc">Taulut 1–10 & kympit</span>
           <span class="topic-level-tag" id="level-tag-kertolaskut">Taso 1</span>
         </button>
-        <button class="topic-btn" data-start-topic="jakolaskut">
+        <button class="topic-btn" data-start-subject="matematiikka" data-start-topic="jakolaskut">
           <span class="topic-icon">➗</span>
           <span class="topic-title">Jakolaskut</span>
           <span class="topic-desc">Jakoviiva & jakojäännös</span>
           <span class="topic-level-tag" id="level-tag-jakolaskut">Taso 1</span>
         </button>
-        <button class="topic-btn" data-start-topic="murtoluvut">
+        <button class="topic-btn" data-start-subject="matematiikka" data-start-topic="murtoluvut">
           <span class="topic-icon">🍰</span>
           <span class="topic-title">Murtoluvut</span>
           <span class="topic-desc">Osa luvusta & vertailu</span>
           <span class="topic-level-tag" id="level-tag-murtoluvut">Taso 1</span>
         </button>
-        <button class="topic-btn" data-start-topic="lukualue">
+        <button class="topic-btn" data-start-subject="matematiikka" data-start-topic="lukualue">
           <span class="topic-icon">🔢</span>
           <span class="topic-title">Lukualue 0–100k</span>
           <span class="topic-desc">Pyöristys & lukujonot</span>
           <span class="topic-level-tag" id="level-tag-lukualue">Taso 1</span>
         </button>
-        <button class="topic-btn" data-start-topic="mittaaminen">
+        <button class="topic-btn" data-start-subject="matematiikka" data-start-topic="mittaaminen">
           <span class="topic-icon">📏</span>
           <span class="topic-title">Mittaaminen</span>
           <span class="topic-desc">Piiri, yksiköt & kello</span>
           <span class="topic-level-tag" id="level-tag-mittaaminen">Taso 1</span>
         </button>
-        <button class="topic-btn" data-start-topic="sanalliset">
+        <button class="topic-btn" data-start-subject="matematiikka" data-start-topic="sanalliset">
           <span class="topic-icon">💡</span>
           <span class="topic-title">Sanalliset</span>
           <span class="topic-desc">Arjen matikkapähkinät</span>
           <span class="topic-level-tag" id="level-tag-sanalliset">Taso 1</span>
         </button>
-        <button class="topic-btn" data-start-topic="laskujarjestys">
+        <button class="topic-btn" data-start-subject="matematiikka" data-start-topic="laskujarjestys">
           <span class="topic-icon">🧮</span>
           <span class="topic-title">Laskujärjestys</span>
           <span class="topic-desc">Sulut & yhdistetyt laskut</span>
           <span class="topic-level-tag" id="level-tag-laskujarjestys">Taso 1</span>
         </button>
-        <button class="topic-btn" data-start-topic="sekoitus">
+        <button class="topic-btn" data-start-subject="matematiikka" data-start-topic="sekoitus">
           <span class="topic-icon">🎲</span>
           <span class="topic-title">Supersekoitus</span>
           <span class="topic-desc">Kaikkia aiheita sekaisin</span>
+        </button>
+      </div>
+
+      <!-- 2. YMPÄRISTÖOPPI -->
+      <div class="topics-grid subject-topics hidden" id="topics-grid-ymparisto">
+        <button class="topic-btn" data-start-subject="ymparisto" data-start-topic="ymppi_metsa">
+          <span class="topic-icon">🌲</span>
+          <span class="topic-title">Suomen luonto & metsä</span>
+          <span class="topic-desc">Puut, eläimet & ravintoketjut</span>
+          <span class="topic-level-tag" id="level-tag-ymppi_metsa">Taso 1</span>
+        </button>
+        <button class="topic-btn" data-start-subject="ymparisto" data-start-topic="ymppi_vedet">
+          <span class="topic-icon">💧</span>
+          <span class="topic-title">Vedet & Itämeri</span>
+          <span class="topic-desc">Itämeri, kalat & veden kierto</span>
+          <span class="topic-level-tag" id="level-tag-ymppi_vedet">Taso 1</span>
+        </button>
+        <button class="topic-btn" data-start-subject="ymparisto" data-start-topic="ymppi_keho">
+          <span class="topic-icon">🫀</span>
+          <span class="topic-title">Ihmiskeho & aistit</span>
+          <span class="topic-desc">Elimet, aistit, luusto & uni</span>
+          <span class="topic-level-tag" id="level-tag-ymppi_keho">Taso 1</span>
+        </button>
+        <button class="topic-btn" data-start-subject="ymparisto" data-start-topic="ymppi_kartat">
+          <span class="topic-icon">🗺️</span>
+          <span class="topic-title">Kartat & ilmansuunnat</span>
+          <span class="topic-desc">Ilmansuunnat & Suomen kartta</span>
+          <span class="topic-level-tag" id="level-tag-ymppi_kartat">Taso 1</span>
+        </button>
+        <button class="topic-btn" data-start-subject="ymparisto" data-start-topic="ymppi_kierratys">
+          <span class="topic-icon">♻️</span>
+          <span class="topic-title">Kierrätys & kestävyys</span>
+          <span class="topic-desc">Lajittelu, energia & luonnonvarat</span>
+          <span class="topic-level-tag" id="level-tag-ymppi_kierratys">Taso 1</span>
+        </button>
+        <button class="topic-btn" data-start-subject="ymparisto" data-start-topic="ymppi_sekoitus">
+          <span class="topic-icon">🎲</span>
+          <span class="topic-title">Ymppi-sekoitus</span>
+          <span class="topic-desc">Kaikkia ympäristöopin aiheita</span>
+        </button>
+      </div>
+
+      <!-- 3. YHTEISKUNTAOPPI -->
+      <div class="topics-grid subject-topics hidden" id="topics-grid-yhteiskunta">
+        <button class="topic-btn" data-start-subject="yhteiskunta" data-start-topic="yht_perhe">
+          <span class="topic-icon">🏠</span>
+          <span class="topic-title">Perhe & yhteisöt</span>
+          <span class="topic-desc">Erilaiset perheet & ystävyys</span>
+          <span class="topic-level-tag" id="level-tag-yht_perhe">Taso 1</span>
+        </button>
+        <button class="topic-btn" data-start-subject="yhteiskunta" data-start-topic="yht_koulu">
+          <span class="topic-icon">🏫</span>
+          <span class="topic-title">Koulu & säännöt</span>
+          <span class="topic-desc">Säännöt, kiusaamisen esto & turva</span>
+          <span class="topic-level-tag" id="level-tag-yht_koulu">Taso 1</span>
+        </button>
+        <button class="topic-btn" data-start-subject="yhteiskunta" data-start-topic="yht_media">
+          <span class="topic-icon">📱</span>
+          <span class="topic-title">Media & digiturva</span>
+          <span class="topic-desc">Nettiturva, ikärajat & lähdekritiikki</span>
+          <span class="topic-level-tag" id="level-tag-yht_media">Taso 1</span>
+        </button>
+        <button class="topic-btn" data-start-subject="yhteiskunta" data-start-topic="yht_raha">
+          <span class="topic-icon">💶</span>
+          <span class="topic-title">Raha & kuluttaminen</span>
+          <span class="topic-desc">Tulot, menot, budjetti & mainonta</span>
+          <span class="topic-level-tag" id="level-tag-yht_raha">Taso 1</span>
+        </button>
+        <button class="topic-btn" data-start-subject="yhteiskunta" data-start-topic="yht_oikeudet">
+          <span class="topic-icon">⚖️</span>
+          <span class="topic-title">Oikeudet & päätöksenteko</span>
+          <span class="topic-desc">Lasten oikeudet, kunta & demokratia</span>
+          <span class="topic-level-tag" id="level-tag-yht_oikeudet">Taso 1</span>
+        </button>
+        <button class="topic-btn" data-start-subject="yhteiskunta" data-start-topic="yht_sekoitus">
+          <span class="topic-icon">🎲</span>
+          <span class="topic-title">Yhteiskunta-sekoitus</span>
+          <span class="topic-desc">Kaikkia yhteiskuntaopin aiheita</span>
         </button>
       </div>
     </section>
@@ -220,6 +334,14 @@
         <form id="form-add-exam">
           <input type="hidden" id="input-exam-id" value="">
           <div class="form-group">
+            <label>Oppiaine</label>
+            <select id="input-exam-subject" class="form-control" style="font-weight: 700;">
+              <option value="matematiikka">📐 Matematiikka</option>
+              <option value="ymparisto">🌿 Ympäristöoppi</option>
+              <option value="yhteiskunta">🏛️ Yhteiskuntaoppi</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label>Kokeen nimi</label>
             <input type="text" id="input-exam-name" class="form-control" placeholder="esim. Matematiikan jakson 3 koe" required>
           </div>
@@ -232,15 +354,30 @@
             <input type="text" id="input-exam-topics" class="form-control" placeholder="esim. Kertotaulut 6–9, Jakolaskut, Murtoluvut">
             <div class="topic-chips-label">Pikavalinnat (napauta lisätäksesi aiheita):</div>
             <div class="topic-chips" id="exam-topic-chips">
-              <button type="button" class="topic-chip" data-topic="Kertotaulut 6–9">⚡ Kertotaulut 6–9</button>
-              <button type="button" class="topic-chip" data-topic="Kertolaskut (kympit)">⚡ Kympeillä kertominen</button>
-              <button type="button" class="topic-chip" data-topic="Jakolaskut & jakojäännös">➗ Jakolaskut & jakojäännös</button>
-              <button type="button" class="topic-chip" data-topic="Murtoluvut">🍰 Murtoluvut</button>
-              <button type="button" class="topic-chip" data-topic="Lukualue 0–100 000 & pyöristys">🔢 Lukualue & pyöristys</button>
-              <button type="button" class="topic-chip" data-topic="Mittaaminen & piiri">📏 Mittaaminen & piiri</button>
-              <button type="button" class="topic-chip" data-topic="Kellonajat">⏰ Kellonajat</button>
-              <button type="button" class="topic-chip" data-topic="Sanalliset monivaihetehtävät">💡 Sanalliset tehtävät</button>
-              <button type="button" class="topic-chip" data-topic="Laskujärjestys & sulut">🧮 Laskujärjestys & sulut</button>
+              <!-- Matikka -->
+              <button type="button" class="topic-chip chip-matematiikka" data-topic="Kertotaulut 6–9">⚡ Kertotaulut 6–9</button>
+              <button type="button" class="topic-chip chip-matematiikka" data-topic="Kertolaskut (kympit)">⚡ Kympeillä kertominen</button>
+              <button type="button" class="topic-chip chip-matematiikka" data-topic="Jakolaskut & jakojäännös">➗ Jakolaskut & jakojäännös</button>
+              <button type="button" class="topic-chip chip-matematiikka" data-topic="Murtoluvut">🍰 Murtoluvut</button>
+              <button type="button" class="topic-chip chip-matematiikka" data-topic="Lukualue 0–100 000 & pyöristys">🔢 Lukualue & pyöristys</button>
+              <button type="button" class="topic-chip chip-matematiikka" data-topic="Mittaaminen & piiri">📏 Mittaaminen & piiri</button>
+              <button type="button" class="topic-chip chip-matematiikka" data-topic="Kellonajat">⏰ Kellonajat</button>
+              <button type="button" class="topic-chip chip-matematiikka" data-topic="Sanalliset monivaihetehtävät">💡 Sanalliset tehtävät</button>
+              <button type="button" class="topic-chip chip-matematiikka" data-topic="Laskujärjestys & sulut">🧮 Laskujärjestys & sulut</button>
+              
+              <!-- Ymppi -->
+              <button type="button" class="topic-chip chip-ymparisto hidden" data-topic="Suomen luonto & metsä">🌲 Suomen luonto & metsä</button>
+              <button type="button" class="topic-chip chip-ymparisto hidden" data-topic="Vedet & Itämeri">💧 Vedet & Itämeri</button>
+              <button type="button" class="topic-chip chip-ymparisto hidden" data-topic="Ihmiskeho & aistit">🫀 Ihmiskeho & aistit</button>
+              <button type="button" class="topic-chip chip-ymparisto hidden" data-topic="Kartat & ilmansuunnat">🗺️ Kartat & ilmansuunnat</button>
+              <button type="button" class="topic-chip chip-ymparisto hidden" data-topic="Kierrätys & kestävä kehitys">♻️ Kierrätys & kestävyys</button>
+
+              <!-- Yhteiskuntaoppi -->
+              <button type="button" class="topic-chip chip-yhteiskunta hidden" data-topic="Perhe & yhteisöt">🏠 Perhe & yhteisöt</button>
+              <button type="button" class="topic-chip chip-yhteiskunta hidden" data-topic="Koulu & säännöt">🏫 Koulu & säännöt</button>
+              <button type="button" class="topic-chip chip-yhteiskunta hidden" data-topic="Media & digiturva">📱 Media & digiturva</button>
+              <button type="button" class="topic-chip chip-yhteiskunta hidden" data-topic="Raha, työ & kulutus">💶 Raha, työ & kulutus</button>
+              <button type="button" class="topic-chip chip-yhteiskunta hidden" data-topic="Oikeudet & päätöksenteko">⚖️ Oikeudet & päätöksenteko</button>
             </div>
           </div>
           <button type="submit" class="btn btn-primary btn-sm" id="btn-save-exam">Tallenna koe kalenteriin</button>
@@ -406,6 +543,7 @@
   <script src="./js/audio.js"></script>
   <script src="./js/confetti.js"></script>
   <script src="./js/mathEngine.js"></script>
+  <script src="./js/subjectEngine.js"></script>
   <script src="./js/app.js"></script>
 </body>
 </html>

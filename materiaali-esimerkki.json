@@ -1,16 +1,40 @@
 {
-  "versio": "1.0",
-  "selite": "Tämä on esimerkkipohja koemateriaalien ja kokeiden tuontia varten. Voit muokata tätä ja tuoda tiedoston sovelluksen Vanhempien tilassa.",
+  "versio": "2.0",
+  "selite": "Tämä on esimerkkipohja koemateriaalien ja kokeiden tuontia varten (Matematiikka, Ympäristöoppi, Yhteiskuntaoppi). Voit tuoda tämän sovelluksen Vanhempien tilassa.",
   "kokeet": [
     {
       "id": "koe-matikka-jakso-2",
       "nimi": "Matematiikan jakson 2 koe",
+      "subject": "matematiikka",
       "paivamaara": "2026-11-20",
-      "aine": "Matematiikka",
       "aihealueet": [
-        "Kertotaulut 6-9",
-        "Jakolaskut ja jakojäännös",
-        "Murtoluvut (vertailu ja osan laskeminen)"
+        "Kertotaulut 6–9",
+        "Jakolaskut & jakojäännös",
+        "Murtoluvut"
+      ],
+      "tavoiteLaskujaPaivassa": 10
+    },
+    {
+      "id": "koe-ymppi-jakso-1",
+      "nimi": "Ympäristöopin metsä- ja vesikoe",
+      "subject": "ymparisto",
+      "paivamaara": "2026-11-27",
+      "aihealueet": [
+        "Suomen luonto & metsä",
+        "Vedet & Itämeri",
+        "Kierrätys & kestävä kehitys"
+      ],
+      "tavoiteLaskujaPaivassa": 10
+    },
+    {
+      "id": "koe-yht-jakso-1",
+      "nimi": "Yhteiskuntaopin syyskertaus",
+      "subject": "yhteiskunta",
+      "paivamaara": "2026-12-04",
+      "aihealueet": [
+        "Koulu & säännöt",
+        "Media & digiturva",
+        "Raha, työ & kulutus"
       ],
       "tavoiteLaskujaPaivassa": 10
     }
@@ -18,6 +42,7 @@
   "omatTehtavat": [
     {
       "id": "teht-1",
+      "subject": "matematiikka",
       "aihe": "Sanallinen",
       "kysymys": "Viljami ostaa 3 vihkoa, joista jokainen maksaa 4 euroa, ja kynän, joka maksaa 3 euroa. Paljonko ostokset maksavat yhteensä?",
       "oikeaVastaus": "15",
@@ -26,38 +51,31 @@
     },
     {
       "id": "teht-2",
+      "subject": "matematiikka",
       "aihe": "Murtoluvut",
       "kysymys": "Luokalla on 24 oppilasta. Heistä 1/4 harrastaa jalkapalloa. Kuinka monta oppilasta harrastaa jalkapalloa?",
       "oikeaVastaus": "6",
       "yksikko": "oppilasta",
       "vihje": "Jaa luokan oppilasmäärä 24 neljällä (24 : 4)."
-    },
-    {
-      "id": "teht-3",
-      "aihe": "Mittaaminen",
-      "kysymys": "Suorakulmion muotoisen pihan pituus on 8 metriä ja leveys 5 metriä. Mikä on pihan piiri?",
-      "oikeaVastaus": "26",
-      "yksikko": "m",
-      "vihje": "Piiri on kaikkien sivujen summa: 8 m + 5 m + 8 m + 5 m."
     }
   ],
   "palkinnot": [
     {
       "id": "palkinto-1",
       "nimi": "Valitse perjantain leffaherkku 🍿",
-      "hintaXP": 300,
+      "hinta": 30,
       "kuvaus": "Vanhempi ostaa tai tekee valitsemasi herkun leffailtaan!"
     },
     {
       "id": "palkinto-2",
       "nimi": "30 min vapaata peliaikaa 🎮",
-      "hintaXP": 600,
+      "hinta": 50,
       "kuvaus": "Puoli tuntia ylimääräistä peliaikaa viikonloppuna."
     },
     {
       "id": "palkinto-3",
       "nimi": "Toiveruoka päivälliselle 🍕",
-      "hintaXP": 1000,
+      "hinta": 80,
       "kuvaus": "Päätät mitä syödään viikonloppuna!"
     }
   ]

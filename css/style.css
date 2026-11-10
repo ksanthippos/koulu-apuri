@@ -295,6 +295,109 @@ body {
   border-left: 4px solid var(--primary);
 }
 
+/* Oppiaineen valintakortit */
+.subject-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+@media (max-width: 680px) {
+  .subject-picker-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+.subject-card {
+  background: #ffffff;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 14px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.subject-card:active {
+  transform: scale(0.98);
+}
+
+.subject-card[data-subject="matematiikka"].active {
+  border-color: #4F46E5;
+  background: #EEF2FF;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.16);
+}
+
+.subject-card[data-subject="ymparisto"].active {
+  border-color: #059669;
+  background: #ECFDF5;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.16);
+}
+
+.subject-card[data-subject="yhteiskunta"].active {
+  border-color: #D97706;
+  background: #FFFBEB;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.16);
+}
+
+.subject-card-icon {
+  font-size: 32px;
+}
+
+.subject-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.subject-card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.subject-card-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.subject-card-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.subject-card.active .subject-card-badge {
+  border-color: transparent;
+  background: #ffffff;
+}
+
+.subject-card[data-subject="matematiikka"].active .subject-card-badge {
+  color: #4F46E5;
+}
+
+.subject-card[data-subject="ymparisto"].active .subject-card-badge {
+  color: #059669;
+}
+
+.subject-card[data-subject="yhteiskunta"].active .subject-card-badge {
+  color: #D97706;
+}
+
 /* Aiheruudukko */
 .topics-grid {
   display: grid;
@@ -503,6 +606,17 @@ body {
 .choice-btn:active {
   background: var(--primary-light);
   border-color: var(--primary);
+}
+
+.choice-grid.single-col {
+  grid-template-columns: 1fr;
+}
+
+.choice-grid.single-col .choice-btn {
+  text-align: left;
+  padding: 14px 18px;
+  font-size: 16px;
+  line-height: 1.4;
 }
 
 /* iPad Numeronäppäimistö - Huomattavasti kookkaampi ja selkeämpi */
