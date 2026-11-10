@@ -1,6 +1,6 @@
-# 🦉 Koulu-apuri (PWA 4. luokan matematiikkaan & kokeisiin)
+# 🦉 Koulu-apuri (PWA 4. luokan matematiikkaan, ympäristöoppiin & yhteiskuntaoppiin)
 
-**Koulu-apuri** on iPadille ja mobiililaitteille optimoitu, pelillinen Progressive Web App (PWA) 4. luokkalaisen kokeisiin kertaamiseen ja matematiikan perustaitojen vahvistamiseen.
+**Koulu-apuri** on iPadille ja mobiililaitteille optimoitu, pelillinen Progressive Web App (PWA) 4. luokkalaisen kokeisiin kertaamiseen ja matematiikan, ympäristöopin sekä yhteiskuntaopin taitojen vahvistamiseen.
 
 Sovellus on suunniteltu toimimaan saumattomasti iPadin **Ruutuaika (Screen Time)** -rajoitusten kanssa ilman, että lapselle tarvitsee antaa vapaata pääsyä internetselaimeen.
 
@@ -8,11 +8,25 @@ Sovellus on suunniteltu toimimaan saumattomasti iPadin **Ruutuaika (Screen Time)
 
 ## ✨ Tärkeimmät ominaisuudet
 
+- **3 oppiainetta (4. lk OPS 2016):**
+  - 📐 **Matematiikka:** Kertolaskut, jakolaskut, murtoluvut, lukualue & pyöristys, mittaaminen & kello, sanalliset ja laskujärjestys suluilla.
+  - 🌿 **Ympäristöoppi:** Suomen luonto & metsä, vedet & Itämeri, ihmiskeho & aistit, kartat & ilmansuunnat sekä kierrätys & kestävä kehitys.
+  - 🏛️ **Yhteiskuntaoppi:** Perhe & yhteisöt, koulu & säännöt, media & digiturva, raha & kuluttaminen sekä oikeudet & päätöksenteko.
+- **Mukautuvat taitotasot (Tasot 1–3):**
+  - Jokaisessa aihealueessa älykäs 3-portainen adaptiivinen vaikeustaso.
+  - Kun oppilas saavuttaa $\ge 80\%$ tuloksen, aiheen taso nousee automaattisesti haastavampiin tehtäviin.
+- **Monipuoliset tehtävätyypit & SVG-kuvantunnistus:**
+  - Kompassin ilmansuunnat, puiden lehdet ja havut, kierrätysastioiden lajittelu, liikennemerkit, ikärajat ja elimet.
+  - Monivalinnat, totta/tarua -väitteet, tulo/meno -lajittelut ja suurennettu iPad-numeronäppäimistö.
+- **Automaattinen versionhallinta (muoto 1.0x):**
+  - Versio tallentuu `version.json`-tiedostoon ja nousee automaattisesti 0.01:llä jokaisen commitin yhteydessä (`.githooks/pre-commit`).
+  - Päivittää samalla automaattisesti PWA Service Workerin välimuistiversion, jotta päivitykset tulevat laitteelle välittömästi.
 - **Pelillisyys & palkitsevuus:**
   - XP-kokemuspisteet, tasojärjestelmä (Tasot 1–10: *Laskijanoorukista Matikkaneroon*).
-  - Päivittäinen harjoitteluputki (Streak 🔥) ja päivän treeni.
-  - Ansaitut tähdet ⭐ ja palkintokauppa, jossa sekä virtuaalisia palkintoja että vanhemman määrittelemiä tosielämän palkintoja (esim. *leffaherkku*, *30 min peliaikaa*).
-  - Välitön kannustava palaute, sisäänrakennetut ääniefektit (Web Audio API) ja konfettianimaatiot ilman ulkoisia riippuvuuksia.
+  - Päivittäinen harjoitteluputki (Streak 🔥) ja päivän treeni valitusta oppiaineesta.
+  - Ansaitut tähdet ⭐ ja palkintokauppa (sekä virtuaaliset palkinnot että vanhemman omat palkinnot).
+  - Valinnainen sekuntikello ⏱️ ja nopeusbonus (+XP).
+  - Välitön kannustava palaute, sisäänrakennetut ääniefektit (Web Audio API) ja konfettianimaatiot.
 - **Koe-tutka & älykäs kertausaikataulu:**
   - Tulevien kokeiden päivämäärät ja koealueet.
   - Automaattinen suositus ja laskuri (14 pv $\rightarrow$ 7 pv $\rightarrow$ 2 pv $\rightarrow$ koepäivä).
